@@ -7,10 +7,13 @@ import {
   aggregateShowcase,
   formatCurrency,
   formatNumber,
+  getPerfMetric,
+  type PerfMetric,
   type ShowcaseProject,
 } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 import { selectedProjects, type PortfolioConfig } from "./config"
+import { MetricMainChart } from "@/components/buildos/reporting/perf-charts"
 
 /* ---------------------------------------------------------------------------
  * Shared pieces
@@ -397,12 +400,138 @@ function ClosingSection({ config }: { config: PortfolioConfig }) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Internal leadership deck sections
+ * ------------------------------------------------------------------------- */
+
+function deltaToneClasses(intent: PerfMetric["deltaIntent"]): string {
+  switch (intent) {
+    case "good":
+      return "bg-success-muted text-success-strong"
+    case "warn":
+      return "bg-warning-muted text-warning-strong"
+    case "bad":
+      return "bg-danger-muted text-danger-strong"
+    default:
+      return "bg-muted text-muted-foreground"
+  }
+}
+
+function InternalCoverSection({ config }: { config: PortfolioConfig }) {
+  const metrics = config.metricKeys
+    .map((k) => getPerfMetric(k))
+    .filter((m): m is PerfMetric => Boolean(m))
+  return (
+    <section className="flex min-h-[640px] flex-col justify-between bg-primary px-10 py-12 text-primary-foreground sm:px-14 sm:py-14">
+      <div className="flex items-start justify-between">
+        <ShowcaseLogo tone="light" />
+        <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90">
+          Internal · Leadership
+        </span>
+      </div>
+
+      <div>
+        <Eyebrow light>Performance Review</Eyebrow>
+        <h1 className="mt-4 max-w-3xl font-display text-5xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl">
+          {config.title || "Portfolio Performance Review"}
+        </h1>
+        {config.intro.trim() ? (
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/80 text-pretty">
+            {config.intro}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-8 gap-y-6 border-t border-white/15 pt-8 sm:grid-cols-4">
+        {metrics.slice(0, 4).map((m) => (
+          <div key={m.key}>
+            <div className="font-display text-3xl font-semibold leading-none tracking-tight">
+              {m.value}
+            </div>
+            <div className="mt-2 text-xs text-white/70 text-pretty">{m.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function MetricSlideSection({
+  metric,
+  index,
+  total,
+}: {
+  metric: PerfMetric
+  index: number
+  total: number
+}) {
+  return (
+    <section className="flex flex-col bg-card px-10 py-12 text-card-foreground sm:px-14 sm:py-14">
+      <div className="flex items-center justify-between">
+        <Eyebrow>Performance Metric</Eyebrow>
+        <span className="text-xs font-medium text-muted-foreground tabular-nums">
+          {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+        </span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+        <h2 className="max-w-2xl font-display text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl">
+          {metric.label}
+        </h2>
+        <div className="flex items-center gap-3">
+          <span className="font-display text-4xl font-semibold leading-none tracking-tight text-foreground sm:text-5xl">
+            {metric.value}
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-medium",
+              deltaToneClasses(metric.deltaIntent),
+            )}
+          >
+            {metric.delta}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-border bg-background/40 p-4">
+        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Trailing 12 months
+        </div>
+        <MetricMainChart metric={metric} />
+      </div>
+
+      <p className="mt-8 max-w-3xl border-t border-border pt-7 text-[15px] leading-relaxed text-foreground/85 text-pretty">
+        {metric.narrative}
+      </p>
+    </section>
+  )
+}
+
+function InternalClosingSection() {
+  return (
+    <section className="flex min-h-[420px] flex-col justify-between bg-primary px-10 py-14 text-primary-foreground sm:px-14">
+      <ShowcaseLogo tone="light" />
+      <div>
+        <Eyebrow light>Discussion</Eyebrow>
+        <p className="mt-4 max-w-2xl font-display text-3xl font-semibold leading-[1.15] tracking-tight text-balance sm:text-4xl">
+          Questions, priorities, and where to lean in next quarter.
+        </p>
+        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/75 text-pretty">
+          Prepared from live BuildOS operating data for internal leadership review. Not for external
+          distribution.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* ---------------------------------------------------------------------------
  * Slide builder + document
  * ------------------------------------------------------------------------- */
 
 export type Slide = { key: string; label: string; node: ReactNode }
 
 export function buildSlides(config: PortfolioConfig): Slide[] {
+  if (config.kind === "internal") return buildInternalSlides(config)
   const projects = selectedProjects(config)
   const slides: Slide[] = []
   if (config.sections.cover) {
@@ -429,6 +558,27 @@ export function buildSlides(config: PortfolioConfig): Slide[] {
   }
   if (config.sections.closing) {
     slides.push({ key: "closing", label: "Closing", node: <ClosingSection config={config} /> })
+  }
+  return slides
+}
+
+function buildInternalSlides(config: PortfolioConfig): Slide[] {
+  const metrics = config.metricKeys
+    .map((k) => getPerfMetric(k))
+    .filter((m): m is PerfMetric => Boolean(m))
+  const slides: Slide[] = []
+  if (config.sections.cover) {
+    slides.push({ key: "cover", label: "Cover", node: <InternalCoverSection config={config} /> })
+  }
+  metrics.forEach((m, i) => {
+    slides.push({
+      key: `metric-${m.key}`,
+      label: m.label,
+      node: <MetricSlideSection metric={m} index={i} total={metrics.length} />,
+    })
+  })
+  if (config.sections.closing) {
+    slides.push({ key: "closing", label: "Closing", node: <InternalClosingSection /> })
   }
   return slides
 }

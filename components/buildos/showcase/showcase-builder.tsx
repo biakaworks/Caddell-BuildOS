@@ -15,22 +15,33 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
   defaultConfig,
+  internalConfig,
   reorder as reorderIds,
   selectedProjects,
   toggleSelection,
   type PortfolioConfig,
 } from "./config"
 import { ALL_SHOWCASE_PROJECTS } from "./config"
-import { sortShowcaseProjects } from "@/lib/mock-data"
+import {
+  PERFORMANCE_METRICS,
+  sortShowcaseProjects,
+  type PerfMetricKey,
+} from "@/lib/mock-data"
 import { ProjectPicker } from "./project-picker"
 import { CuratePanel } from "./curate-panel"
+import { MetricCuratePanel } from "./metric-curate-panel"
 import { PortfolioDocument } from "./portfolio-document"
 import { TheaterMode } from "./theater-mode"
 
 type Step = "select" | "curate" | "preview"
 
-const STEPS: { key: Step; label: string }[] = [
+const CLIENT_STEPS: { key: Step; label: string }[] = [
   { key: "select", label: "Select projects" },
+  { key: "curate", label: "Curate & arrange" },
+  { key: "preview", label: "Preview & present" },
+]
+
+const INTERNAL_STEPS: { key: Step; label: string }[] = [
   { key: "curate", label: "Curate & arrange" },
   { key: "preview", label: "Preview & present" },
 ]
@@ -45,8 +56,22 @@ function suggestStrongest(count = 5): string[] {
 export function ShowcaseBuilder() {
   const searchParams = useSearchParams()
 
-  // Seed selection from a deep-link (?projects=a,b,c) or auto-suggest.
+  const isInternal = searchParams.get("deck") === "internal"
+
+  // Seed from a deep-link: internal metric deck (?deck=internal&metrics=a,b),
+  // a client project deck (?projects=a,b,c), or auto-suggest the strongest.
   const [config, setConfig] = useState<PortfolioConfig>(() => {
+    if (isInternal) {
+      const metricParam = searchParams.get("metrics")
+      const keys = (metricParam ? metricParam.split(",") : [])
+        .map((s) => s.trim())
+        .filter((k): k is PerfMetricKey =>
+          PERFORMANCE_METRICS.some((m) => m.key === k),
+        )
+      return internalConfig(
+        keys.length ? keys : PERFORMANCE_METRICS.map((m) => m.key),
+      )
+    }
     const base = defaultConfig()
     const param = searchParams.get("projects")
     const seeded = param
@@ -63,8 +88,11 @@ export function ShowcaseBuilder() {
     }
   })
 
-  const [step, setStep] = useState<Step>("select")
+  // Internal decks skip project selection — start on curate.
+  const [step, setStep] = useState<Step>(isInternal ? "curate" : "select")
   const [theater, setTheater] = useState(false)
+
+  const STEPS = isInternal ? INTERNAL_STEPS : CLIENT_STEPS
 
   const update = (patch: Partial<PortfolioConfig>) =>
     setConfig((c) => ({ ...c, ...patch }))
@@ -77,7 +105,9 @@ export function ShowcaseBuilder() {
     update({ selectedIds: config.selectedIds.filter((x) => x !== id) })
 
   const projects = useMemo(() => selectedProjects(config), [config])
-  const canAdvance = projects.length > 0
+  const itemCount = isInternal ? config.metricKeys.length : projects.length
+  const itemNoun = isInternal ? "metric" : "project"
+  const canAdvance = itemCount > 0
 
   const stepIndex = STEPS.findIndex((s) => s.key === step)
   const goNext = () => {
@@ -96,8 +126,12 @@ export function ShowcaseBuilder() {
       <PageContainer>
         <div className="print-hide">
           <PageHeader
-            title="Portfolio Builder"
-            subtitle="Assemble a polished, client-ready portfolio from completed projects — then present it live or export a PDF."
+            title={isInternal ? "Leadership Deck Builder" : "Portfolio Builder"}
+            subtitle={
+              isInternal
+                ? "Assemble an internal performance deck from selected metrics — then present it live or export a PDF."
+                : "Assemble a polished, client-ready portfolio from completed projects — then present it live or export a PDF."
+            }
           />
 
           {/* Stepper */}
@@ -140,7 +174,8 @@ export function ShowcaseBuilder() {
 
             <div className="ms-auto flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                {projects.length} project{projects.length === 1 ? "" : "s"} selected
+                {itemCount} {itemNoun}
+                {itemCount === 1 ? "" : "s"} selected
               </span>
             </div>
           </div>
@@ -154,12 +189,16 @@ export function ShowcaseBuilder() {
 
           {step === "curate" ? (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
-              <CuratePanel
-                config={config}
-                update={update}
-                reorderProjects={reorderProjects}
-                removeProject={removeProject}
-              />
+              {isInternal ? (
+                <MetricCuratePanel config={config} update={update} />
+              ) : (
+                <CuratePanel
+                  config={config}
+                  update={update}
+                  reorderProjects={reorderProjects}
+                  removeProject={removeProject}
+                />
+              )}
               <div className="min-w-0">
                 <div className="sticky top-4">
                   <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">

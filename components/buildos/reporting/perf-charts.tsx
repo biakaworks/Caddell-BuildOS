@@ -56,6 +56,22 @@ const buConfig = {
   international: { label: "International", color: "var(--chart-3)" },
 } satisfies ChartConfig
 
+/**
+ * A padded [min, max] domain so trends read clearly instead of flattening
+ * against a 0-baseline. Accounts for any reference line so it stays visible.
+ */
+function paddedDomain(values: number[], ref?: number): [number, number] {
+  const nums = values.filter((v) => Number.isFinite(v))
+  if (ref !== undefined) nums.push(ref)
+  if (nums.length === 0) return [0, 1]
+  const lo = Math.min(...nums)
+  const hi = Math.max(...nums)
+  const pad = Math.max((hi - lo) * 0.25, Math.abs(hi) * 0.05, 0.05)
+  // Don't dip below zero for non-negative metrics.
+  const min = lo < 0 ? lo - pad : Math.max(0, lo - pad)
+  return [Number(min.toFixed(2)), Number((hi + pad).toFixed(2))]
+}
+
 /* --------------------------------------------------------------------------
  * Main trend chart (area / line / bar depending on the metric)
  * ------------------------------------------------------------------------ */
@@ -113,7 +129,11 @@ export function MetricMainChart({ metric }: { metric: PerfMetric }) {
             axisLine={false}
             width={36}
             fontSize={12}
-            domain={metric.decimals === 2 ? [0, "auto"] : undefined}
+            domain={paddedDomain(
+              metric.series.map((p) => p.total),
+              refLine?.y,
+            )}
+            allowDecimals={metric.decimals > 0}
           />
           <ChartTooltip content={<ChartTooltipContent />} />
           {refLine ? (
@@ -156,9 +176,20 @@ export function BUBreakdownChart({ metric }: { metric: PerfMetric }) {
       <LineChart data={metric.series} margin={{ left: 4, right: 12, top: 8 }}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
         <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} fontSize={12} />
-        <YAxis tickLine={false} axisLine={false} width={36} fontSize={12} />
-        <ChartTooltip content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          width={36}
+          fontSize={12}
+          domain={paddedDomain(
+            metric.series.flatMap((p) =>
+              [p.commercial, p.governmental, p.international].filter(
+                (v): v is number => v !== null,
+              ),
+            ),
+          )}
+          allowDecimals={metric.decimals > 0}
+        />
         <Line
           dataKey="commercial"
           type="monotone"

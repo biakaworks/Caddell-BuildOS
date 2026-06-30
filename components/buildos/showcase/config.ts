@@ -2,8 +2,12 @@ import {
   COMPANY_STATS,
   SHOWCASE_PROJECTS,
   getShowcaseProject,
+  type PerfMetricKey,
   type ShowcaseProject,
 } from "@/lib/mock-data"
+
+/** Which kind of deck the builder is assembling. */
+export type DeckKind = "client" | "internal"
 
 export type SectionKey = "cover" | "showcases" | "capabilities" | "safety" | "closing"
 
@@ -24,11 +28,15 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
 }
 
 export type PortfolioConfig = {
+  /** "client" = capabilities portfolio; "internal" = leadership metric deck. */
+  kind: DeckKind
   title: string
   intro: string
   preparedFor: string
   /** Ordered list of selected project ids (drag order is preserved). */
   selectedIds: string[]
+  /** Ordered list of selected metric keys (internal decks only). */
+  metricKeys: PerfMetricKey[]
   /** Which cover company stats are shown, aligned to COMPANY_STATS index. */
   enabledStats: boolean[]
   sections: Record<SectionKey, boolean>
@@ -36,11 +44,13 @@ export type PortfolioConfig = {
 
 export function defaultConfig(): PortfolioConfig {
   return {
+    kind: "client",
     title: "Capabilities Portfolio",
     intro:
       "A selection of completed projects that demonstrate our ability to deliver complex, mission-critical work — safely, on schedule, and on budget.",
     preparedFor: "",
     selectedIds: [],
+    metricKeys: [],
     enabledStats: COMPANY_STATS.map(() => true),
     sections: {
       cover: true,
@@ -49,6 +59,18 @@ export function defaultConfig(): PortfolioConfig {
       safety: true,
       closing: true,
     },
+  }
+}
+
+/** A default config preset for an internal leadership metric deck. */
+export function internalConfig(metricKeys: PerfMetricKey[]): PortfolioConfig {
+  return {
+    ...defaultConfig(),
+    kind: "internal",
+    title: "Portfolio Performance Review",
+    intro:
+      "A leadership view of portfolio performance across pipeline, delivery, and safety — drawn from live operating data.",
+    metricKeys,
   }
 }
 
