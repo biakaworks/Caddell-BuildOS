@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import {
   ArrowUpRight,
@@ -43,6 +43,16 @@ export function PursuitsView() {
   const [stageFilter, setStageFilter] = useState<PursuitStage | "Active" | "All">("Active")
   const [query, setQuery] = useState("")
   const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  // Deep-link support: /pursuits?id=<pursuitId> opens that opportunity directly
+  // (used by the dashboard Portfolio map "View details" link for leads).
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("id")
+    if (id && PURSUITS.some((p) => p.id === id)) {
+      setStageFilter("All")
+      setSelectedId(id)
+    }
+  }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
