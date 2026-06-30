@@ -1677,3 +1677,332 @@ export const PORTFOLIO_SITES: PortfolioSite[] = [
     link: null,
   },
 ]
+
+// ---------------------------------------------------------------------------
+// Showcase / Portfolio Builder
+// ---------------------------------------------------------------------------
+// Company-level cover figures use Caddell's REAL public, widely-published
+// facts. Individual projects, clients, and values below are GENERIC and
+// illustrative — they do not represent real contracts.
+
+export type ShowcaseDelivery = "Design-Build" | "CMaR" | "GC"
+
+export type ShowcaseProject = {
+  id: string
+  name: string
+  market: string
+  delivery: ShowcaseDelivery
+  clientType: string
+  location: string
+  /** Year completed, shown to the client. */
+  completed: string
+  /** Numeric year for recency sorting. */
+  completedYear: number
+  contractValue: number
+  /** % of milestones delivered on or ahead of schedule (higher is better). */
+  onTimePct: number
+  /** Budget variance %, negative = under budget (better). */
+  budgetVariancePct: number
+  /** Total safety work-hours on the project. */
+  safetyHours: number
+  /** Total Recordable Incident Rate (lower is better). */
+  trir: number
+  /** Gross square footage; 0 for non-building (civil) scopes. */
+  sqft: number
+  /** One-line notable scope. */
+  scope: string
+  /** 2–4 sentence client-facing narrative. */
+  narrative: string
+  /** Local image path under /public; component falls back gracefully. */
+  image: string
+  imageAlt: string
+}
+
+export const COMPANY_STATS: { value: string; label: string }[] = [
+  { value: "40+", label: "Years building" },
+  { value: "Employee-owned", label: "Aligned with client outcomes" },
+  { value: "$24B+", label: "Construction completed" },
+  { value: "38", label: "Countries across 5 continents" },
+]
+
+export const SHOWCASE_PROJECTS: ShowcaseProject[] = [
+  {
+    id: "sc-data-center",
+    name: "Data Center Campus",
+    market: "Mission Critical",
+    delivery: "Design-Build",
+    clientType: "Hyperscale technology client",
+    location: "Mountain West US",
+    completed: "2024",
+    completedYear: 2024,
+    contractValue: 415_000_000,
+    onTimePct: 100,
+    budgetVariancePct: -2.5,
+    safetyHours: 1_600_000,
+    trir: 0.18,
+    sqft: 480_000,
+    scope: "Tier III multi-hall campus, 48 MW critical load",
+    narrative:
+      "Delivered a multi-hall hyperscale campus on an aggressive speed-to-power schedule. Early procurement of long-lead electrical gear and a parallel commissioning track brought every data hall online on or ahead of plan, with zero lost-time incidents across the build.",
+    image: "/showcase/datacenter.png",
+    imageAlt: "Modern hyperscale data center campus at dusk",
+  },
+  {
+    id: "sc-manufacturing",
+    name: "Advanced Manufacturing Plant",
+    market: "Advanced Manufacturing",
+    delivery: "Design-Build",
+    clientType: "Fortune 100 manufacturer",
+    location: "Southeast US",
+    completed: "2024",
+    completedYear: 2024,
+    contractValue: 320_000_000,
+    onTimePct: 99,
+    budgetVariancePct: -1.4,
+    safetyHours: 2_100_000,
+    trir: 0.35,
+    sqft: 900_000,
+    scope: "Cleanroom and heavy-process manufacturing",
+    narrative:
+      "A greenfield production facility combining high-bay manufacturing, cleanroom space, and complex process utilities. Integrated design-build delivery compressed the schedule while holding tight tolerances for process equipment installation.",
+    image: "/showcase/manufacturing.png",
+    imageAlt: "Advanced manufacturing plant exterior with metal cladding",
+  },
+  {
+    id: "sc-medical",
+    name: "Regional Medical Center",
+    market: "Healthcare",
+    delivery: "CMaR",
+    clientType: "Regional health system",
+    location: "Midwest US",
+    completed: "2022",
+    completedYear: 2022,
+    contractValue: 260_000_000,
+    onTimePct: 97,
+    budgetVariancePct: -0.5,
+    safetyHours: 1_800_000,
+    trir: 0.22,
+    sqft: 540_000,
+    scope: "Acute-care tower and central utility plant",
+    narrative:
+      "A new acute-care tower delivered adjacent to an operating hospital campus. Construction manager-at-risk preconstruction aligned budget and program early, and rigorous infection-control and noise mitigation kept the active campus fully operational throughout.",
+    image: "/showcase/healthcare.png",
+    imageAlt: "Regional medical center tower with curved glass facade",
+  },
+  {
+    id: "sc-embassy",
+    name: "Overseas Embassy Annex",
+    market: "Federal / Diplomatic",
+    delivery: "Design-Build",
+    clientType: "Federal agency",
+    location: "EMEA",
+    completed: "2024",
+    completedYear: 2024,
+    contractValue: 210_000_000,
+    onTimePct: 96,
+    budgetVariancePct: 0.0,
+    safetyHours: 1_450_000,
+    trir: 0.28,
+    sqft: 280_000,
+    scope: "Blast-resistant secure diplomatic facility",
+    narrative:
+      "A secure diplomatic facility built to stringent federal security and life-safety standards on an international site. Self-performed concrete and a disciplined logistics plan overcame import and clearance constraints to meet accreditation milestones.",
+    image: "/showcase/embassy.png",
+    imageAlt: "Secure modern diplomatic compound building",
+  },
+  {
+    id: "sc-logistics",
+    name: "Regional Logistics Center",
+    market: "Industrial / Logistics",
+    delivery: "Design-Build",
+    clientType: "Fortune 50 logistics client",
+    location: "Southeast US",
+    completed: "2023",
+    completedYear: 2023,
+    contractValue: 185_000_000,
+    onTimePct: 100,
+    budgetVariancePct: -2.1,
+    safetyHours: 1_200_000,
+    trir: 0.42,
+    sqft: 1_250_000,
+    scope: "Automated high-bay distribution center",
+    narrative:
+      "A 1.25 million-square-foot automated distribution center delivered ahead of a fixed peak-season deadline. Tilt-up construction and an early equipment-integration plan let the client begin automation fit-out weeks early.",
+    image: "/showcase/logistics.png",
+    imageAlt: "Large modern logistics distribution center exterior",
+  },
+  {
+    id: "sc-infrastructure",
+    name: "Civil Infrastructure Program",
+    market: "Civil / Infrastructure",
+    delivery: "CMaR",
+    clientType: "State agency",
+    location: "Gulf Coast US",
+    completed: "2023",
+    completedYear: 2023,
+    contractValue: 128_000_000,
+    onTimePct: 98,
+    budgetVariancePct: -1.0,
+    safetyHours: 720_000,
+    trir: 0.4,
+    sqft: 0,
+    scope: "Roadway, bridge, and drainage program",
+    narrative:
+      "A multi-phase roadway and drainage improvement program delivered through active traffic. Phased maintenance-of-traffic planning and community coordination minimized disruption while improving resilience across the corridor.",
+    image: "/showcase/infrastructure.png",
+    imageAlt: "New highway interchange and bridge infrastructure",
+  },
+  {
+    id: "sc-courthouse",
+    name: "Federal Courthouse Renovation",
+    market: "Justice / Civic",
+    delivery: "CMaR",
+    clientType: "Federal agency",
+    location: "Mid-Atlantic US",
+    completed: "2022",
+    completedYear: 2022,
+    contractValue: 96_000_000,
+    onTimePct: 98,
+    budgetVariancePct: -0.8,
+    safetyHours: 640_000,
+    trir: 0.31,
+    sqft: 310_000,
+    scope: "Occupied-facility phased renovation",
+    narrative:
+      "A full modernization of a historic courthouse that remained in session throughout construction. Detailed phasing, security coordination, and after-hours work protected court operations while upgrading systems and security to current federal standards.",
+    image: "/showcase/courthouse.png",
+    imageAlt: "Dignified federal courthouse exterior with columns",
+  },
+  {
+    id: "sc-education",
+    name: "K-12 Campus Expansion",
+    market: "Education",
+    delivery: "CMaR",
+    clientType: "Public school district",
+    location: "Southwest US",
+    completed: "2023",
+    completedYear: 2023,
+    contractValue: 74_000_000,
+    onTimePct: 100,
+    budgetVariancePct: -3.0,
+    safetyHours: 410_000,
+    trir: 0.0,
+    sqft: 220_000,
+    scope: "Occupied campus expansion and renovation",
+    narrative:
+      "Classroom, athletic, and STEM additions delivered across a live campus on the academic calendar. The work was sequenced into summer windows and completed with a perfect safety record — zero recordable incidents.",
+    image: "/showcase/education.png",
+    imageAlt: "Modern K-12 school campus building with courtyard",
+  },
+  {
+    id: "sc-mixed-use",
+    name: "Mixed-Use Tower",
+    market: "Commercial / Mixed-Use",
+    delivery: "GC",
+    clientType: "Private developer",
+    location: "Southeast US",
+    completed: "2021",
+    completedYear: 2021,
+    contractValue: 140_000_000,
+    onTimePct: 95,
+    budgetVariancePct: 1.2,
+    safetyHours: 980_000,
+    trir: 0.5,
+    sqft: 620_000,
+    scope: "High-rise residential with ground-floor retail",
+    narrative:
+      "A signature urban high-rise combining residential units, structured parking, and street-level retail. Tight downtown logistics and a self-perform concrete frame kept the structure on a steady cycle in a constrained site.",
+    image: "/showcase/mixed-use.png",
+    imageAlt: "Modern mixed-use high-rise tower with retail base",
+  },
+]
+
+export const getShowcaseProject = (id: string): ShowcaseProject | undefined =>
+  SHOWCASE_PROJECTS.find((p) => p.id === id)
+
+export type ShowcaseSortKey = "value" | "onBudget" | "safety" | "onTime" | "recent"
+
+export const SHOWCASE_SORTS: { key: ShowcaseSortKey; label: string }[] = [
+  { key: "value", label: "Highest value" },
+  { key: "onBudget", label: "Best on-budget" },
+  { key: "safety", label: "Best safety" },
+  { key: "onTime", label: "Best on-time" },
+  { key: "recent", label: "Most recent" },
+]
+
+export function sortShowcaseProjects(
+  projects: ShowcaseProject[],
+  key: ShowcaseSortKey,
+): ShowcaseProject[] {
+  const arr = [...projects]
+  switch (key) {
+    case "value":
+      return arr.sort((a, b) => b.contractValue - a.contractValue)
+    case "onBudget":
+      return arr.sort((a, b) => a.budgetVariancePct - b.budgetVariancePct)
+    case "safety":
+      return arr.sort((a, b) => a.trir - b.trir)
+    case "onTime":
+      return arr.sort((a, b) => b.onTimePct - a.onTimePct)
+    case "recent":
+      return arr.sort((a, b) => b.completedYear - a.completedYear)
+  }
+}
+
+export type ShowcaseAggregate = {
+  count: number
+  totalValue: number
+  onTimeRate: number
+  onBudgetRate: number
+  totalSafetyHours: number
+  blendedTrir: number
+  zeroIncidentProjects: number
+  markets: string[]
+  deliveryMethods: string[]
+  regions: string[]
+}
+
+export function aggregateShowcase(projects: ShowcaseProject[]): ShowcaseAggregate {
+  const count = projects.length
+  if (count === 0) {
+    return {
+      count: 0,
+      totalValue: 0,
+      onTimeRate: 0,
+      onBudgetRate: 0,
+      totalSafetyHours: 0,
+      blendedTrir: 0,
+      zeroIncidentProjects: 0,
+      markets: [],
+      deliveryMethods: [],
+      regions: [],
+    }
+  }
+  const totalValue = projects.reduce((s, p) => s + p.contractValue, 0)
+  const onTimeRate = Math.round(projects.reduce((s, p) => s + p.onTimePct, 0) / count)
+  const onBudgetRate = Math.round(
+    (projects.filter((p) => p.budgetVariancePct <= 0).length / count) * 100,
+  )
+  const totalSafetyHours = projects.reduce((s, p) => s + p.safetyHours, 0)
+  // TRIR blended by hours worked.
+  const blendedTrir =
+    totalSafetyHours > 0
+      ? projects.reduce((s, p) => s + p.trir * p.safetyHours, 0) / totalSafetyHours
+      : 0
+  const zeroIncidentProjects = projects.filter((p) => p.trir === 0).length
+  const markets = Array.from(new Set(projects.map((p) => p.market)))
+  const deliveryMethods = Array.from(new Set(projects.map((p) => p.delivery)))
+  const regions = Array.from(new Set(projects.map((p) => p.location)))
+  return {
+    count,
+    totalValue,
+    onTimeRate,
+    onBudgetRate,
+    totalSafetyHours,
+    blendedTrir: Math.round(blendedTrir * 100) / 100,
+    zeroIncidentProjects,
+    markets,
+    deliveryMethods,
+    regions,
+  }
+}

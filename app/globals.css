@@ -9,6 +9,7 @@
   --font-heading: var(--font-sans);
   --font-sans: var(--font-geist-sans), 'Geist Fallback';
   --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
+  --font-display: var(--font-display), Georgia, 'Times New Roman', serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -137,6 +138,51 @@
 @layer utilities {
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+  .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+/* --- Showcase / Portfolio print + PDF export -------------------------------
+   The client-facing portfolio paginates cleanly when printed (Save as PDF).
+   Cover = 1 page, each project = its own page, summary, safety, closing. */
+@media print {
+  @page {
+    size: Letter;
+    margin: 0.5in;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  /* Hide app chrome and the builder UI; only the document prints. */
+  .print-hide {
+    display: none !important;
+  }
+  .portfolio-doc {
+    display: block !important;
+    background: #fff !important;
+    padding: 0 !important;
+  }
+  .portfolio-page {
+    break-inside: avoid;
+    break-after: page;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+  }
+  .portfolio-page:last-child {
+    break-after: auto;
+  }
+  /* Ensure brand colors and stat fills render in print. */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 

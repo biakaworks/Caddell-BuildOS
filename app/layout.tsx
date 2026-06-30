@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
 import { AppShell } from '@/components/buildos/app-shell'
 import './globals.css'
 
@@ -8,6 +8,12 @@ const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
+})
+// Editorial serif — used ONLY for the client-facing Showcase output.
+const fraunces = Fraunces({
+  variable: '--font-display',
+  subsets: ['latin'],
+  axes: ['opsz'],
 })
 
 export const metadata: Metadata = {
@@ -47,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`light ${geistSans.variable} ${geistMono.variable}`}
+      className={`light ${geistSans.variable} ${geistMono.variable} ${fraunces.variable}`}
     >
       <body className="bg-background font-sans antialiased">
         <AppShell>{children}</AppShell>
