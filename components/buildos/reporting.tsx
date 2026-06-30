@@ -2,188 +2,359 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { Presentation, Sparkles } from "lucide-react"
-import { UNIT_ROLLUPS, formatCurrency, type UnitRollup } from "@/lib/mock-data"
+import {
+  CalendarDays,
+  Check,
+  Info,
+  Plus,
+  Presentation,
+  Search,
+  Sparkles,
+} from "lucide-react"
+import {
+  PERFORMANCE_METRICS,
+  REPORT_PERIODS,
+  type BusinessUnit,
+  type PerfMetric,
+  type ReportPeriodId,
+} from "@/lib/mock-data"
 import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader } from "@/components/buildos/ui"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import { PerformanceReport } from "@/components/buildos/reporting/performance-report"
+import { fmtMetric, MetricMainChart, RollupSmallMultiples } from "@/components/buildos/reporting/perf-charts"
+import { MetricDetailView } from "@/components/buildos/reporting/metric-detail"
+import { DIVISION_ROLLUP } from "@/lib/mock-data"
+import { blockId } from "@/components/buildos/showcase/config"
 
-type ReportingTab = "overview" | "performance"
+const BU_OPTIONS: (BusinessUnit | "All")[] = [
+  "All",
+  "Commercial",
+  "Governmental",
+  "International",
+]
+
+const UNIT_FIELD: Record<BusinessUnit, "commercial" | "governmental" | "international"> = {
+  Commercial: "commercial",
+  Governmental: "governmental",
+  International: "international",
+}
+
+/** Re-scope a metric's headline + total trend to a single business unit. */
+function scopeMetric(metric: PerfMetric, unit: BusinessUnit | "All"): PerfMetric {
+  if (unit === "All") return metric
+  const field = UNIT_FIELD[unit]
+  const series = metric.series.map((p) => ({ ...p, total: p[field] ?? p.total }))
+  const last = series[series.length - 1].total
+  return { ...metric, series, value: fmtMetric(last, metric) }
+}
+
+const deltaTone: Record<PerfMetric["deltaIntent"], string> = {
+  good: "bg-success-muted text-success-strong",
+  warn: "bg-warning-muted text-warning-strong",
+  bad: "bg-danger-muted text-danger-strong",
+  neutral: "bg-muted text-muted-foreground",
+}
 
 export function ReportingView() {
-  const { unit, openAsk } = useApp()
-  const [tab, setTab] = useState<ReportingTab>("overview")
+  const { openAsk, stagedBlocks, isStaged, toggleStaged, clearStaged } = useApp()
 
-  const rollups = useMemo(
-    () => UNIT_ROLLUPS.filter((r) => unit === "All" || r.unit === unit),
+  const [query, setQuery] = useState("")
+  const [unit, setUnit] = useState<BusinessUnit | "All">("All")
+  const [periodId, setPeriodId] = useState<ReportPeriodId>("q2-2026")
+  const [loading, setLoading] = useState(false)
+  const [detailKey, setDetailKey] = useState<string | null>(null)
+
+  const period = REPORT_PERIODS.find((p) => p.id === periodId) ?? REPORT_PERIODS[0]
+
+  function changePeriod(id: ReportPeriodId) {
+    if (id === periodId) return
+    setPeriodId(id)
+    setLoading(true)
+    window.setTimeout(() => setLoading(false), 650)
+  }
+
+  // Apply the business-unit scope, then the free-text metric filter.
+  const scoped = useMemo(
+    () => PERFORMANCE_METRICS.map((m) => scopeMetric(m, unit)),
     [unit],
   )
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return scoped
+    return scoped.filter((m) => m.label.toLowerCase().includes(q))
+  }, [scoped, query])
 
-  const totals = useMemo(() => {
-    const all = UNIT_ROLLUPS.filter((r) => unit === "All" || r.unit === unit)
-    const backlog = all.reduce((s, r) => s + r.backlog, 0)
-    const pipeline = all.reduce((s, r) => s + r.pipeline, 0)
-    const projects = all.reduce((s, r) => s + r.activeProjects, 0)
-    const winRate = Math.round(all.reduce((s, r) => s + r.winRate, 0) / all.length)
-    return { backlog, pipeline, projects, winRate }
-  }, [unit])
-
-  const maxBacklog = Math.max(...UNIT_ROLLUPS.map((r) => r.backlog))
+  const stagedCount = stagedBlocks.length
+  const detailMetric = detailKey ? scoped.find((m) => m.key === detailKey) ?? null : null
 
   return (
     <PageContainer>
       <PageHeader
         title="Reporting"
-        subtitle="Executive roll-up across business units. Backlog, pipeline, schedule, budget, and safety."
+        subtitle="The chart library. Browse every KPI, view it in detail, and stage charts for the Portfolio Builder."
       >
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" render={<Link href="/showcase" />}>
             <Presentation className="size-4" />
-            Build portfolio
+            Portfolio Builder
           </Button>
-          <Button onClick={() => openAsk("Generate an executive summary of portfolio health by business unit for the board.")}>
+          <Button
+            onClick={() =>
+              openAsk("Generate an executive summary of portfolio health by business unit for the board.")
+            }
+          >
             <Sparkles className="size-4" />
             Generate summary
           </Button>
         </div>
       </PageHeader>
 
-      {/* View switcher */}
-      <div className="mt-5 inline-flex rounded-lg border border-border bg-card p-1 print-hide">
-        {(
-          [
-            { key: "overview", label: "Overview" },
-            { key: "performance", label: "Performance report" },
-          ] as const
-        ).map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            onClick={() => setTab(t.key)}
-            aria-pressed={tab === t.key}
-            className={cn(
-              "rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors",
-              tab === t.key
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
+      {/* Filters */}
+      <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-border bg-card p-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative w-full lg:max-w-xs">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Filter charts by metric…"
+            aria-label="Filter charts by metric"
+            className="w-full rounded-lg bg-background py-2 pl-9 pr-3 text-sm text-foreground ring-1 ring-border outline-none placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="mr-1 text-xs font-medium text-muted-foreground">Business unit</span>
+            {BU_OPTIONS.map((opt) => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setUnit(opt)}
+                aria-pressed={unit === opt}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                  unit === opt
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-background text-muted-foreground ring-1 ring-border hover:text-foreground",
+                )}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="outline" size="sm">
+                  <CalendarDays className="size-4" />
+                  {period.label}
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              {REPORT_PERIODS.map((p) => (
+                <DropdownMenuItem key={p.id} onClick={() => changePeriod(p.id)}>
+                  {p.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {tab === "performance" ? (
-        <div className="mt-6">
-          <PerformanceReport />
+      <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Info className="size-3.5 shrink-0" />
+        {period.cadence} · Scope: {unit === "All" ? "All business units" : unit} · Select charts to
+        stage them, then open the Portfolio Builder to assemble a deck.
+      </p>
+
+      {/* Gallery */}
+      {filtered.length === 0 ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-border py-16 text-center">
+          <p className="text-sm font-medium text-foreground">No charts match your filter</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Try a different search term or clear the filter.
+          </p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={() => setQuery("")}>
+            Clear filter
+          </Button>
         </div>
       ) : (
-        <>
-      {/* Portfolio totals */}
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <BigStat label="Total backlog" value={formatCurrency(totals.backlog)} />
-        <BigStat label="Active pipeline" value={formatCurrency(totals.pipeline)} />
-        <BigStat label="Active projects" value={String(totals.projects)} />
-        <BigStat label="Blended win rate" value={`${totals.winRate}%`} />
-      </div>
-
-      {/* Backlog by unit */}
-      <div className="mt-6 rounded-2xl bg-card p-5 ring-1 ring-border">
-        <h3 className="text-sm font-semibold text-foreground">Backlog by business unit</h3>
-        <div className="mt-4 space-y-4">
-          {rollups.map((r) => (
-            <div key={r.unit}>
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-medium text-foreground">{r.unit}</span>
-                <span className="tabular-nums text-muted-foreground">{formatCurrency(r.backlog)}</span>
-              </div>
-              <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-primary" style={{ width: `${(r.backlog / maxBacklog) * 100}%` }} />
-              </div>
-            </div>
+        <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
+          {filtered.map((metric) => (
+            <MetricLibraryCard
+              key={metric.key}
+              metric={metric}
+              loading={loading}
+              staged={isStaged(blockId({ kind: "metric", key: metric.key }))}
+              onToggleStage={() => toggleStaged(blockId({ kind: "metric", key: metric.key }))}
+              onView={() => setDetailKey(metric.key)}
+            />
           ))}
         </div>
-      </div>
-
-      {/* Per-unit scorecards */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {rollups.map((r) => (
-          <UnitScorecard key={r.unit} rollup={r} />
-        ))}
-      </div>
-        </>
       )}
+
+      {/* Cross-division roll-up (view only) */}
+      <section className="mt-10">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+          Cross-division roll-up
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Commercial, Governmental, and International compared across the headline metrics.
+        </p>
+        <div className="mt-4">
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {DIVISION_ROLLUP.map((_, i) => (
+                <div
+                  key={i}
+                  className="h-48 animate-pulse rounded-xl border border-border bg-muted motion-reduce:animate-none"
+                />
+              ))}
+            </div>
+          ) : (
+            <RollupSmallMultiples />
+          )}
+        </div>
+      </section>
+
+      {/* Staging tray */}
+      {stagedCount > 0 ? (
+        <div className="sticky bottom-0 z-10 mt-8 flex flex-wrap items-center gap-3 border-t border-border bg-background/85 py-3 backdrop-blur">
+          <span className="text-sm font-medium text-foreground">
+            {stagedCount} chart{stagedCount === 1 ? "" : "s"} staged
+          </span>
+          <Button variant="ghost" size="sm" onClick={clearStaged}>
+            Clear
+          </Button>
+          <Button className="ms-auto" render={<Link href="/showcase" />}>
+            <Presentation className="size-4" />
+            Open in Portfolio Builder
+          </Button>
+        </div>
+      ) : null}
+
+      {/* Detail panel */}
+      <Sheet open={detailMetric !== null} onOpenChange={(o) => (!o ? setDetailKey(null) : null)}>
+        <SheetContent side="right" className="w-full overflow-y-auto p-5 sm:max-w-2xl">
+          {detailMetric ? (
+            <>
+              <SheetHeader className="p-0">
+                <SheetTitle className="sr-only">{detailMetric.label} detail</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Full chart, business-unit breakdown, and data table for {detailMetric.label}.
+                </SheetDescription>
+              </SheetHeader>
+              <MetricDetailView metric={detailMetric} loading={loading} />
+              <div className="mt-6 flex items-center justify-end gap-2 border-t border-border pt-4">
+                <StageButton
+                  staged={isStaged(blockId({ kind: "metric", key: detailMetric.key }))}
+                  onToggle={() =>
+                    toggleStaged(blockId({ kind: "metric", key: detailMetric.key }))
+                  }
+                />
+              </div>
+            </>
+          ) : null}
+        </SheetContent>
+      </Sheet>
     </PageContainer>
   )
 }
 
-function BigStat({ label, value }: { label: string; value: string }) {
+function StageButton({ staged, onToggle }: { staged: boolean; onToggle: () => void }) {
   return (
-    <div className="rounded-xl bg-card p-4 ring-1 ring-border">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums text-foreground">{value}</p>
-    </div>
+    <Button variant={staged ? "outline" : "default"} onClick={onToggle}>
+      {staged ? <Check className="size-4" /> : <Plus className="size-4" />}
+      {staged ? "Staged for builder" : "Add to Portfolio Builder"}
+    </Button>
   )
 }
 
-function UnitScorecard({ rollup }: { rollup: UnitRollup }) {
-  return (
-    <div className="rounded-2xl bg-card p-5 ring-1 ring-border">
-      <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold text-foreground">{rollup.unit}</h3>
-        <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground tabular-nums">
-          {rollup.activeProjects} active
-        </span>
-      </div>
-      <dl className="mt-4 space-y-3">
-        <Gauge label="Schedule health" value={rollup.scheduleHealth} target={85} suffix="%" higherBetter />
-        <Gauge
-          label="Budget variance"
-          value={rollup.budgetVariance}
-          target={2}
-          suffix="%"
-          higherBetter={false}
-          signed
-        />
-        <Gauge label="Safety TRIR" value={rollup.trir} target={0.75} higherBetter={false} decimals={2} />
-        <Gauge label="Win rate" value={rollup.winRate} target={40} suffix="%" higherBetter />
-      </dl>
-    </div>
-  )
-}
-
-function Gauge({
-  label,
-  value,
-  target,
-  suffix = "",
-  higherBetter,
-  signed,
-  decimals = 0,
+function MetricLibraryCard({
+  metric,
+  loading,
+  staged,
+  onToggleStage,
+  onView,
 }: {
-  label: string
-  value: number
-  target: number
-  suffix?: string
-  higherBetter: boolean
-  signed?: boolean
-  decimals?: number
+  metric: PerfMetric
+  loading: boolean
+  staged: boolean
+  onToggleStage: () => void
+  onView: () => void
 }) {
-  const good = higherBetter ? value >= target : value <= target
-  const rounded = Number(value.toFixed(decimals))
-  const normalized = Object.is(rounded, -0) ? 0 : rounded
-  const display = `${signed && normalized > 0 ? "+" : ""}${normalized.toFixed(decimals)}${suffix}`
   return (
-    <div className="flex items-center justify-between">
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="flex items-center gap-2">
-        <span className={cn("size-1.5 rounded-full", good ? "bg-success" : "bg-warning")} />
-        <span className={cn("text-sm font-semibold tabular-nums", good ? "text-foreground" : "text-warning-strong")}>
-          {display}
-        </span>
-      </dd>
-    </div>
+    <article
+      className={cn(
+        "flex flex-col overflow-hidden rounded-2xl border bg-card transition-colors",
+        staged ? "border-primary ring-1 ring-primary" : "border-border",
+      )}
+    >
+      <div className="flex items-start justify-between gap-3 p-5 pb-3">
+        <div className="min-w-0">
+          <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+            {metric.deck === "internal" ? "Internal metric" : "Client-safe proof point"}
+          </span>
+          <h3 className="mt-1 truncate font-heading text-lg font-semibold text-foreground">
+            {metric.label}
+          </h3>
+        </div>
+        <div className="shrink-0 text-right">
+          <div className="font-heading text-2xl font-semibold tabular-nums text-foreground">
+            {metric.value}
+          </div>
+          <span
+            className={cn(
+              "mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-medium",
+              deltaTone[metric.deltaIntent],
+            )}
+          >
+            {metric.delta}
+          </span>
+        </div>
+      </div>
+
+      <div className="px-5">
+        {loading ? (
+          <div className="h-56 w-full animate-pulse rounded-xl bg-muted motion-reduce:animate-none" />
+        ) : (
+          <MetricMainChart metric={metric} />
+        )}
+      </div>
+
+      <p className="mt-3 px-5 text-sm leading-relaxed text-muted-foreground text-pretty">
+        {metric.caption}
+      </p>
+
+      <div className="mt-4 flex items-center justify-between gap-2 border-t border-border p-3">
+        <Button variant="ghost" size="sm" onClick={onView}>
+          View detail
+        </Button>
+        <Button variant={staged ? "outline" : "default"} size="sm" onClick={onToggleStage}>
+          {staged ? <Check className="size-4" /> : <Plus className="size-4" />}
+          {staged ? "Staged" : "Add to builder"}
+        </Button>
+      </div>
+    </article>
   )
 }
