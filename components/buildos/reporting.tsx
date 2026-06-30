@@ -1,7 +1,8 @@
 "use client"
 
 import { useMemo } from "react"
-import { Sparkles } from "lucide-react"
+import Link from "next/link"
+import { Presentation, Sparkles } from "lucide-react"
 import { UNIT_ROLLUPS, formatCurrency, type UnitRollup } from "@/lib/mock-data"
 import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader } from "@/components/buildos/ui"
@@ -33,10 +34,16 @@ export function ReportingView() {
         title="Reporting"
         subtitle="Executive roll-up across business units. Backlog, pipeline, schedule, budget, and safety."
       >
-        <Button onClick={() => openAsk("Generate an executive summary of portfolio health by business unit for the board.")}>
-          <Sparkles className="size-4" />
-          Generate summary
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" render={<Link href="/showcase" />}>
+            <Presentation className="size-4" />
+            Build portfolio
+          </Button>
+          <Button onClick={() => openAsk("Generate an executive summary of portfolio health by business unit for the board.")}>
+            <Sparkles className="size-4" />
+            Generate summary
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Portfolio totals */}

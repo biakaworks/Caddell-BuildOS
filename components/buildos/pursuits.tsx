@@ -8,6 +8,7 @@ import {
   Calculator,
   Filter,
   Flag,
+  Presentation,
   Search,
   Sparkles,
   Star,
@@ -89,10 +90,16 @@ export function PursuitsView() {
         title="Pursuits"
         subtitle="Pipeline across all business units. Weighted by win probability."
       >
-        <Button onClick={() => openAsk("Find comparable past projects for an upcoming data center pursuit.")}>
-          <Sparkles className="size-4" />
-          Ask BuildOS
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" render={<Link href="/showcase" />}>
+            <Presentation className="size-4" />
+            Build portfolio
+          </Button>
+          <Button onClick={() => openAsk("Find comparable past projects for an upcoming data center pursuit.")}>
+            <Sparkles className="size-4" />
+            Ask BuildOS
+          </Button>
+        </div>
       </PageHeader>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">

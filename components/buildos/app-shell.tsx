@@ -17,11 +17,13 @@ function ShellInner({ children }: { children: React.ReactNode }) {
   return (
     <>
       <div className="flex min-h-screen w-full bg-background">
-        <aside className="sticky top-0 hidden h-screen w-64 shrink-0 border-r border-sidebar-border lg:block">
+        <aside className="print-hide sticky top-0 hidden h-screen w-64 shrink-0 border-r border-sidebar-border lg:block">
           <SidebarNav />
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar />
+          <div className="print-hide">
+            <Topbar />
+          </div>
           <main className="flex-1">{children}</main>
         </div>
       </div>
