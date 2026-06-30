@@ -103,9 +103,9 @@ export function HealthDot({ health, className }: { health: Health; className?: s
 type Tone = "success" | "warning" | "danger" | "info" | "neutral"
 
 const toneClass: Record<Tone, string> = {
-  success: "bg-success-muted text-success",
-  warning: "bg-warning-muted text-[oklch(0.44_0.1_60)]",
-  danger: "bg-danger-muted text-danger",
+  success: "bg-success-muted text-success-strong",
+  warning: "bg-warning-muted text-warning-strong",
+  danger: "bg-danger-muted text-danger-strong",
   info: "bg-info-muted text-info",
   neutral: "bg-secondary text-secondary-foreground",
 }

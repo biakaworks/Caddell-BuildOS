@@ -170,8 +170,8 @@ function StatTile({
       <p
         className={cn(
           "mt-1 flex items-center gap-1.5 text-lg font-semibold tracking-tight tabular-nums",
-          tone === "warn" && "text-warning-foreground",
-          tone === "good" && "text-success",
+          tone === "warn" && "text-warning-strong",
+          tone === "good" && "text-success-strong",
         )}
       >
         {health ? <HealthDot health={health} /> : null}
@@ -225,7 +225,7 @@ function OpenItem({ label, value, danger }: { label: string; value: number; dang
       <span
         className={cn(
           "rounded-md px-2 py-0.5 text-sm font-semibold tabular-nums",
-          danger && value > 0 ? "bg-danger-muted text-danger" : "bg-muted text-foreground",
+          danger && value > 0 ? "bg-danger-muted text-danger-strong" : "bg-muted text-foreground",
         )}
       >
         {value}
@@ -273,7 +273,7 @@ function MilestoneRow({ milestone, last }: { milestone: ScheduleMilestone; last:
           {milestone.date} ·{" "}
           <span className="capitalize">{milestone.status.replace("-", " ")}</span>
           {milestone.health !== "on-track" ? (
-            <span className={milestone.health === "critical" ? "text-danger" : "text-warning-foreground"}>
+                <span className={milestone.health === "critical" ? "text-danger-strong" : "text-warning-strong"}>
               {" "}
               · {healthLabel[milestone.health]}
             </span>

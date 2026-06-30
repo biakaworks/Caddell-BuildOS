@@ -128,13 +128,15 @@ function Gauge({
   decimals?: number
 }) {
   const good = higherBetter ? value >= target : value <= target
-  const display = `${signed && value > 0 ? "+" : ""}${value.toFixed(decimals)}${suffix}`
+  const rounded = Number(value.toFixed(decimals))
+  const normalized = Object.is(rounded, -0) ? 0 : rounded
+  const display = `${signed && normalized > 0 ? "+" : ""}${normalized.toFixed(decimals)}${suffix}`
   return (
     <div className="flex items-center justify-between">
       <dt className="text-sm text-muted-foreground">{label}</dt>
       <dd className="flex items-center gap-2">
         <span className={cn("size-1.5 rounded-full", good ? "bg-success" : "bg-warning")} />
-        <span className={cn("text-sm font-semibold tabular-nums", good ? "text-foreground" : "text-warning-foreground")}>
+        <span className={cn("text-sm font-semibold tabular-nums", good ? "text-foreground" : "text-warning-strong")}>
           {display}
         </span>
       </dd>

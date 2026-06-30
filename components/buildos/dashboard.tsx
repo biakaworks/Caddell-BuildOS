@@ -110,7 +110,7 @@ export function NeedsAttention() {
                   <span
                     className={cn(
                       "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg",
-                      critical ? "bg-danger-muted text-danger" : "bg-warning-muted text-[oklch(0.5_0.1_60)]",
+                      critical ? "bg-danger-muted text-danger-strong" : "bg-warning-muted text-warning-strong",
                     )}
                   >
                     <Icon className="size-4" />

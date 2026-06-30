@@ -90,8 +90,8 @@ export function EstimatingView() {
                                 className={cn(
                                   "mt-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium",
                                   l.risk.level === "bad"
-                                    ? "bg-danger-muted text-danger"
-                                    : "bg-warning-muted text-warning-foreground",
+                                    ? "bg-danger-muted text-danger-strong"
+                                    : "bg-warning-muted text-warning-strong",
                                 )}
                               >
                                 <AlertTriangle className="size-3" />
@@ -199,7 +199,7 @@ function AccuracyCard() {
                 <span
                   className={cn(
                     "font-medium tabular-nums",
-                    Math.abs(variance) <= 3 ? "text-success" : "text-warning-foreground",
+                    Math.abs(variance) <= 3 ? "text-success-strong" : "text-warning-strong",
                   )}
                 >
                   {variance > 0 ? "+" : ""}

@@ -13,12 +13,6 @@ const healthLabel: Record<Health, string> = {
   "at-risk": "At risk",
   critical: "Critical",
 }
-const healthTone: Record<Health, string> = {
-  "on-track": "text-success",
-  "at-risk": "text-warning-foreground",
-  critical: "text-danger",
-}
-
 export function ProjectsList() {
   const { unit } = useApp()
   const projects = useMemo(
@@ -73,10 +67,8 @@ function ProjectCard({ project }: { project: Project }) {
       <div className="mt-4">
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">{project.percentComplete}% complete</span>
-          <span className={cn("flex items-center gap-1.5 font-medium", healthTone[project.scheduleHealth])}>
-            <HealthDot health={project.scheduleHealth} />
-            {healthLabel[project.scheduleHealth]}
-          </span>
+          <HealthDot health={project.scheduleHealth} />
+          <span className="sr-only">{healthLabel[project.scheduleHealth]}</span>
         </div>
         <Meter className="mt-2" value={project.percentComplete} tone={meterTone} />
       </div>
@@ -88,7 +80,7 @@ function Metric({ label, value, tone = "neutral" }: { label: string; value: stri
   return (
     <div>
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={cn("mt-0.5 text-sm font-semibold tabular-nums", tone === "warn" ? "text-warning-foreground" : "text-foreground")}>
+      <p className={cn("mt-0.5 text-sm font-semibold tabular-nums", tone === "warn" ? "text-warning-strong" : "text-foreground")}>
         {value}
       </p>
     </div>

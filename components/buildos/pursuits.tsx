@@ -28,11 +28,11 @@ const ACTIVE_STAGES: PursuitStage[] = ["Identified", "Go/No-Go", "Proposal", "Su
 
 const stageTone: Record<PursuitStage, string> = {
   Identified: "bg-muted text-muted-foreground",
-  "Go/No-Go": "bg-warning-muted text-warning-foreground",
+  "Go/No-Go": "bg-warning-muted text-warning-strong",
   Proposal: "bg-info-muted text-info",
   Submitted: "bg-accent text-accent-foreground",
-  Won: "bg-success-muted text-success",
-  Lost: "bg-danger-muted text-danger",
+  Won: "bg-success-muted text-success-strong",
+  Lost: "bg-danger-muted text-danger-strong",
 }
 
 export function PursuitsView() {

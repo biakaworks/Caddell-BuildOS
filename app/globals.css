@@ -45,6 +45,7 @@
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-success-muted: var(--success-muted);
+  --color-success-strong: var(--success-strong);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
   --color-warning-muted: var(--warning-muted);
@@ -52,6 +53,7 @@
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
   --color-danger-muted: var(--danger-muted);
+  --color-danger-strong: var(--danger-strong);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-info-muted: var(--info-muted);
@@ -95,12 +97,15 @@
   --success: oklch(0.55 0.13 155);
   --success-foreground: oklch(0.99 0.002 247);
   --success-muted: oklch(0.95 0.04 155);
+  --success-strong: oklch(0.43 0.11 155);
   --warning: oklch(0.66 0.13 65);
   --warning-foreground: oklch(0.99 0.002 247);
   --warning-muted: oklch(0.95 0.05 75);
+  --warning-strong: oklch(0.46 0.1 60);
   --danger: oklch(0.55 0.2 27);
   --danger-foreground: oklch(0.99 0.002 247);
   --danger-muted: oklch(0.95 0.04 27);
+  --danger-strong: oklch(0.48 0.19 27);
   --info: oklch(0.46 0.115 256);
   --info-foreground: oklch(0.99 0.002 247);
   --info-muted: oklch(0.94 0.03 256);
