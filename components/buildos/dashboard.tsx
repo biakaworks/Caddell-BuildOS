@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   ChevronRight,
   ArrowRight,
+  TrendingUp,
 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -26,6 +27,7 @@ import {
 } from "@/lib/mock-data"
 import { useApp } from "./app-context"
 import { Sparkline, TrendDelta, StatusPill, SectionHeading } from "./ui"
+import { PhaseBadge, PreviewBlock } from "./phase"
 
 const intentMap: Record<Kpi["intent"], { bar: string; spark: string }> = {
   good: { bar: "bg-success", spark: "stroke-success" },
@@ -246,6 +248,73 @@ export function EmptyState({
       <p className="max-w-xs text-sm text-muted-foreground">{body}</p>
       {action}
     </div>
+  )
+}
+
+const PREDICTIONS = [
+  {
+    project: "Riverside Medical Tower",
+    signal: "Schedule slip risk",
+    detail: "Steel delivery variance trending toward a 3-week critical-path impact.",
+    confidence: "High",
+    tone: "bad" as const,
+  },
+  {
+    project: "Gulf Logistics Hub",
+    signal: "Margin erosion",
+    detail: "Change-order velocity outpacing approvals; forecast fee down 1.2 pts.",
+    confidence: "Medium",
+    tone: "warn" as const,
+  },
+  {
+    project: "Northgate Mixed-Use",
+    signal: "Early completion",
+    detail: "Concrete pace +8% vs. plan — likely 2 weeks ahead at topping out.",
+    confidence: "Medium",
+    tone: "good" as const,
+  },
+]
+
+const predictionTone: Record<"good" | "warn" | "bad", string> = {
+  good: "bg-success-muted text-success-strong",
+  warn: "bg-warning-muted text-warning-strong",
+  bad: "bg-danger-muted text-danger-strong",
+}
+
+export function PredictiveInsights() {
+  const { unit } = useApp()
+  void unit
+  return (
+    <Card className="gap-0 p-0">
+      <div className="flex items-center justify-between border-b border-border p-4">
+        <div className="flex items-center gap-2">
+          <SectionHeading title="Predictive Insights" />
+          <PhaseBadge phase={3} />
+        </div>
+        <span className="text-xs text-muted-foreground">Forecasted from portfolio signals</span>
+      </div>
+      <PreviewBlock phase={3} ribbon={false} className="border-0 p-2 ring-0">
+        <ul className="divide-y divide-border">
+          {PREDICTIONS.map((p) => (
+            <li key={p.project} className="flex items-start gap-3 rounded-lg p-2.5">
+              <span className={cn("mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg", predictionTone[p.tone])}>
+                <TrendingUp className="size-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  {p.signal}
+                  <span className="ml-1.5 font-normal text-muted-foreground">· {p.project}</span>
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{p.detail}</p>
+              </div>
+              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {p.confidence}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </PreviewBlock>
+    </Card>
   )
 }
 

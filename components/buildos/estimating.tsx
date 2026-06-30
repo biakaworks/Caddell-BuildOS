@@ -11,6 +11,7 @@ import {
 } from "@/lib/mock-data"
 import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader, SectionHeading } from "@/components/buildos/ui"
+import { PhaseBadge } from "@/components/buildos/phase"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -44,6 +45,27 @@ export function EstimatingView() {
           Validate with BuildOS
         </Button>
       </PageHeader>
+
+      {/* Phase 2 — auto-draft from historical database */}
+      <div className="mt-6 flex flex-col items-start gap-4 rounded-2xl border border-info/30 bg-info-muted/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-info-muted text-info">
+            <History className="size-5" />
+          </span>
+          <div>
+            <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              Auto-draft from historical database
+              <PhaseBadge phase={2} />
+            </p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Seed every assembly from 140+ completed Caddell projects, adjusted for location and escalation.
+            </p>
+          </div>
+        </div>
+        <Button variant="outline" className="shrink-0 border-info/40 text-info hover:bg-info-muted">
+          Generate draft estimate
+        </Button>
+      </div>
 
       {/* Basis of estimate */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">

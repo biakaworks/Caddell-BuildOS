@@ -7,6 +7,7 @@ import {
   PipelineMini,
   ActivityFeed,
   PromoStrip,
+  PredictiveInsights,
 } from "@/components/buildos/dashboard"
 import { useApp } from "@/components/buildos/app-context"
 
@@ -41,6 +42,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <div className="xl:col-span-2">
             <ActivityFeed />
+          </div>
+          <div className="space-y-6">
+            <PredictiveInsights />
           </div>
         </div>
       </div>

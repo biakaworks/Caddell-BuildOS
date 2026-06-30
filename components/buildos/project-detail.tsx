@@ -143,6 +143,12 @@ export function ProjectDetail({ project, initialTab }: { project: Project; initi
         <TabsContent value="field">
           <FieldTab project={project} />
         </TabsContent>
+        <TabsContent value="risk">
+          <RiskAnalyticsTab project={project} />
+        </TabsContent>
+        <TabsContent value="capture">
+          <RealityCaptureTab />
+        </TabsContent>
       </Tabs>
     </PageContainer>
   )
@@ -389,10 +395,13 @@ function LogTable({ columns, rows }: { columns: string[]; rows: string[][] }) {
 
 function FieldTab({ project }: { project: Project }) {
   return (
-    <div className="space-y-4">
-      {project.field.map((report) => (
-        <FieldReportCard key={report.id} report={report} />
-      ))}
+    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-4">
+        {project.field.map((report) => (
+          <FieldReportCard key={report.id} report={report} />
+        ))}
+      </div>
+      <MobileFieldPreview />
     </div>
   )
 }

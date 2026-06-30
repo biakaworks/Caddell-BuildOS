@@ -21,6 +21,7 @@ import {
 } from "@/lib/mock-data"
 import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader, StatusPill } from "@/components/buildos/ui"
+import { PhaseBadge } from "@/components/buildos/phase"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -299,6 +300,8 @@ function PursuitDetail({ pursuit, onClose }: { pursuit: Pursuit; onClose: () => 
             <p className="text-sm font-medium text-foreground">{pursuit.dueLabel}</p>
           </div>
 
+          <WinScorePanel pursuit={pursuit} />
+
           <div className="mt-6 flex items-center justify-between">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <Award className="size-4 text-primary" />
@@ -350,6 +353,64 @@ function PursuitDetail({ pursuit, onClose }: { pursuit: Pursuit; onClose: () => 
         </footer>
       </aside>
     </>
+  )
+}
+
+function WinScorePanel({ pursuit }: { pursuit: Pursuit }) {
+  // Phase 3: a predictive score derived from historical outcomes + pursuit signals.
+  const modeled = Math.min(96, Math.max(8, pursuit.probability + (pursuit.comparables.length >= 2 ? 6 : -4)))
+  const delta = modeled - pursuit.probability
+  const drivers =
+    pursuit.comparables.length >= 2
+      ? [
+          { label: "Strong comparable win history in this market", good: true },
+          { label: `${pursuit.delivery} delivery favors our self-perform scope`, good: true },
+          { label: "Aggressive incumbent on the shortlist", good: false },
+        ]
+      : [
+          { label: "Limited comparable history for this scope", good: false },
+          { label: "New client relationship — low familiarity", good: false },
+          { label: "Geography within established footprint", good: true },
+        ]
+  return (
+    <div className="mt-5 rounded-xl border border-accent/40 bg-accent/30 p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <Sparkles className="size-4 text-primary" />
+          Predicted win likelihood
+        </h3>
+        <PhaseBadge phase={3} />
+      </div>
+      <div className="mt-3 flex items-end gap-3">
+        <span className="text-3xl font-semibold tabular-nums text-foreground">{modeled}%</span>
+        <span
+          className={cn(
+            "mb-1 rounded-full px-2 py-0.5 text-xs font-medium tabular-nums",
+            delta >= 0 ? "bg-success-muted text-success-strong" : "bg-warning-muted text-warning-strong",
+          )}
+        >
+          {delta >= 0 ? "+" : ""}
+          {delta} pts vs. captain estimate
+        </span>
+      </div>
+      <ul className="mt-3 space-y-1.5">
+        {drivers.map((d) => (
+          <li key={d.label} className="flex items-start gap-2 text-xs text-foreground/80">
+            <span
+              className={cn(
+                "mt-0.5 size-1.5 shrink-0 rounded-full",
+                d.good ? "bg-success" : "bg-warning",
+              )}
+              aria-hidden
+            />
+            {d.label}
+          </li>
+        ))}
+      </ul>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Model preview — directional only. Final go/no-go remains a leadership decision.
+      </p>
+    </div>
   )
 }
 
