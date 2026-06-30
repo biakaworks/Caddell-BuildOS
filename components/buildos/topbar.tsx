@@ -153,7 +153,7 @@ export function Topbar() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-80">
             <DropdownMenuLabel>Needs attention</DropdownMenuLabel>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator aria-hidden />
             {ATTENTION_ITEMS.slice(0, 5).map((item) => (
               <DropdownMenuItem
                 key={item.id}
