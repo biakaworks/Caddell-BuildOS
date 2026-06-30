@@ -118,7 +118,7 @@ export function BlockPicker({
     )
   }
 
-  const orderOf = (ref: BlockRef) => blocks.findIndex((b) => b.kind === ref.kind && JSON.stringify(b) === JSON.stringify(ref))
+  const orderOf = (ref: BlockRef) => blocks.findIndex((b) => sameBlock(b, ref))
 
   return (
     <div className="flex flex-col gap-8">

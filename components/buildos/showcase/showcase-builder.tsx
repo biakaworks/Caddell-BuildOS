@@ -1,113 +1,132 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import {
   ArrowLeft,
   ArrowRight,
+  Building2,
   Check,
   Download,
+  LineChart,
   Presentation,
   Sparkles,
 } from "lucide-react"
+import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader } from "@/components/buildos/ui"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import {
+  applyKind,
   defaultConfig,
-  internalConfig,
-  reorder as reorderIds,
-  selectedProjects,
-  toggleSelection,
+  hasBlock,
+  isClientSafe,
+  parseBlockId,
+  removeBlock as removeBlockOp,
+  reorderBlocks,
+  toggleBlock,
+  type BlockRef,
+  type DeckKind,
   type PortfolioConfig,
 } from "./config"
-import { ALL_SHOWCASE_PROJECTS } from "./config"
-import {
-  PERFORMANCE_METRICS,
-  sortShowcaseProjects,
-  type PerfMetricKey,
-} from "@/lib/mock-data"
-import { ProjectPicker } from "./project-picker"
+import { BlockPicker } from "./block-picker"
 import { CuratePanel } from "./curate-panel"
-import { MetricCuratePanel } from "./metric-curate-panel"
 import { PortfolioDocument } from "./portfolio-document"
 import { TheaterMode } from "./theater-mode"
 
 type Step = "select" | "curate" | "preview"
 
-const CLIENT_STEPS: { key: Step; label: string }[] = [
-  { key: "select", label: "Select projects" },
+const STEPS: { key: Step; label: string }[] = [
+  { key: "select", label: "Select content" },
   { key: "curate", label: "Curate & arrange" },
   { key: "preview", label: "Preview & present" },
 ]
 
-const INTERNAL_STEPS: { key: Step; label: string }[] = [
-  { key: "curate", label: "Curate & arrange" },
-  { key: "preview", label: "Preview & present" },
+const DECK_TYPES: {
+  kind: DeckKind
+  label: string
+  description: string
+  icon: typeof Building2
+}[] = [
+  {
+    kind: "client",
+    label: "Client portfolio",
+    description: "Editorial, client-ready capabilities deck. Client-safe content only.",
+    icon: Building2,
+  },
+  {
+    kind: "internal",
+    label: "Internal leadership",
+    description: "Performance review for leadership. All metrics available.",
+    icon: LineChart,
+  },
 ]
-
-/** Auto-suggest the strongest projects when arriving with no/partial selection. */
-function suggestStrongest(count = 5): string[] {
-  return sortShowcaseProjects(ALL_SHOWCASE_PROJECTS, "value")
-    .slice(0, count)
-    .map((p) => p.id)
-}
 
 export function ShowcaseBuilder() {
   const searchParams = useSearchParams()
+  const { stagedBlocks, clearStaged } = useApp()
 
-  const isInternal = searchParams.get("deck") === "internal"
-
-  // Seed from a deep-link: internal metric deck (?deck=internal&metrics=a,b),
-  // a client project deck (?projects=a,b,c), or auto-suggest the strongest.
+  // Seed the deck kind + blocks from the deep-link and any staged blocks
+  // carried over from the Reporting chart library.
   const [config, setConfig] = useState<PortfolioConfig>(() => {
-    if (isInternal) {
-      const metricParam = searchParams.get("metrics")
-      const keys = (metricParam ? metricParam.split(",") : [])
-        .map((s) => s.trim())
-        .filter((k): k is PerfMetricKey =>
-          PERFORMANCE_METRICS.some((m) => m.key === k),
-        )
-      return internalConfig(
-        keys.length ? keys : PERFORMANCE_METRICS.map((m) => m.key),
-      )
-    }
-    const base = defaultConfig()
-    const param = searchParams.get("projects")
-    const seeded = param
-      ? param
-          .split(",")
-          .map((s) => s.trim())
-          .filter((id) => ALL_SHOWCASE_PROJECTS.some((p) => p.id === id))
-      : []
+    // Blocks from ?blocks=metric:winRate,project:abc — falls back to staged.
+    const blockParam = searchParams.get("blocks")
+    const ids = blockParam ? blockParam.split(",") : stagedBlocks
+    const seeded = ids
+      .map((id) => parseBlockId(id.trim()))
+      .filter((b): b is BlockRef => Boolean(b))
+
+    // Deck kind: honor ?deck=, otherwise infer from the seeded blocks so an
+    // internal-only chart selection doesn't get silently dropped by the
+    // client guardrail. Mixed/internal content opens as an internal deck.
+    const deckParam = searchParams.get("deck")
+    const kind: DeckKind =
+      deckParam === "internal"
+        ? "internal"
+        : deckParam === "client"
+          ? "client"
+          : seeded.some((b) => !isClientSafe(b))
+            ? "internal"
+            : "client"
+
+    const base = defaultConfig(kind)
     const preparedFor = searchParams.get("for") ?? ""
-    return {
-      ...base,
-      preparedFor,
-      selectedIds: seeded.length ? seeded : suggestStrongest(),
-    }
+    const seededConfig: PortfolioConfig = { ...base, preparedFor, blocks: seeded }
+    // Enforce the client guardrail when we land as a client deck.
+    return kind === "client"
+      ? { ...seededConfig, blocks: seeded.filter(isClientSafe) }
+      : seededConfig
   })
 
-  // Internal decks skip project selection — start on curate.
-  const [step, setStep] = useState<Step>(isInternal ? "curate" : "select")
+  const [step, setStep] = useState<Step>("select")
   const [theater, setTheater] = useState(false)
 
-  const STEPS = isInternal ? INTERNAL_STEPS : CLIENT_STEPS
+  // The staging tray is a transport from Reporting → Builder. Once its blocks
+  // have seeded the initial config, empty the tray so it doesn't re-apply.
+  useEffect(() => {
+    if (stagedBlocks.length) clearStaged()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const update = (patch: Partial<PortfolioConfig>) =>
-    setConfig((c) => ({ ...c, ...patch }))
+  const update = (patch: Partial<PortfolioConfig>) => setConfig((c) => ({ ...c, ...patch }))
 
-  const setSelectedIds = (ids: string[]) => update({ selectedIds: ids })
-  const toggle = (id: string) => update({ selectedIds: toggleSelection(config.selectedIds, id) })
-  const reorderProjects = (from: number, to: number) =>
-    update({ selectedIds: reorderIds(config.selectedIds, from, to) })
-  const removeProject = (id: string) =>
-    update({ selectedIds: config.selectedIds.filter((x) => x !== id) })
+  const toggle = (ref: BlockRef) => update({ blocks: toggleBlock(config.blocks, ref) })
+  const addBlocks = (refs: BlockRef[]) =>
+    setConfig((c) => {
+      const next = [...c.blocks]
+      for (const ref of refs) if (!hasBlock(next, ref)) next.push(ref)
+      return { ...c, blocks: next }
+    })
+  const reorderBlock = (from: number, to: number) =>
+    update({ blocks: reorderBlocks(config.blocks, from, to) })
+  const removeBlock = (ref: BlockRef) => update({ blocks: removeBlockOp(config.blocks, ref) })
 
-  const projects = useMemo(() => selectedProjects(config), [config])
-  const itemCount = isInternal ? config.metricKeys.length : projects.length
-  const itemNoun = isInternal ? "metric" : "project"
-  const canAdvance = itemCount > 0
+  function setKind(kind: DeckKind) {
+    setConfig((c) => applyKind(c, kind))
+  }
+
+  const blockCount = config.blocks.length
+  const canAdvance = blockCount > 0
 
   const stepIndex = STEPS.findIndex((s) => s.key === step)
   const goNext = () => {
@@ -126,13 +145,49 @@ export function ShowcaseBuilder() {
       <PageContainer>
         <div className="print-hide">
           <PageHeader
-            title={isInternal ? "Leadership Deck Builder" : "Portfolio Builder"}
-            subtitle={
-              isInternal
-                ? "Assemble an internal performance deck from selected metrics — then present it live or export a PDF."
-                : "Assemble a polished, client-ready portfolio from completed projects — then present it live or export a PDF."
-            }
+            title="Portfolio Builder"
+            subtitle="Assemble a deck from live charts and project showcases — then present it live or export a PDF."
           />
+
+          {/* Deck type toggle */}
+          <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {DECK_TYPES.map((t) => {
+              const active = config.kind === t.kind
+              const Icon = t.icon
+              return (
+                <button
+                  key={t.kind}
+                  type="button"
+                  onClick={() => setKind(t.kind)}
+                  aria-pressed={active}
+                  className={cn(
+                    "flex items-start gap-3 rounded-xl border p-4 text-left transition-colors",
+                    active
+                      ? "border-primary bg-primary/5"
+                      : "border-border bg-card hover:border-muted-foreground/40",
+                  )}
+                >
+                  <span
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                      active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="size-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                      {t.label}
+                      {active ? <Check className="size-4 text-primary" /> : null}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground text-pretty">
+                      {t.description}
+                    </span>
+                  </span>
+                </button>
+              )
+            })}
+          </div>
 
           {/* Stepper */}
           <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -174,8 +229,7 @@ export function ShowcaseBuilder() {
 
             <div className="ms-auto flex items-center gap-2">
               <span className="text-sm text-muted-foreground">
-                {itemCount} {itemNoun}
-                {itemCount === 1 ? "" : "s"} selected
+                {blockCount} slide{blockCount === 1 ? "" : "s"} selected
               </span>
             </div>
           </div>
@@ -184,21 +238,22 @@ export function ShowcaseBuilder() {
         {/* Step body */}
         <div className="print-hide mt-6">
           {step === "select" ? (
-            <ProjectPicker selectedIds={config.selectedIds} onChange={setSelectedIds} />
+            <BlockPicker
+              kind={config.kind}
+              blocks={config.blocks}
+              onToggle={toggle}
+              addBlocks={addBlocks}
+            />
           ) : null}
 
           {step === "curate" ? (
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
-              {isInternal ? (
-                <MetricCuratePanel config={config} update={update} />
-              ) : (
-                <CuratePanel
-                  config={config}
-                  update={update}
-                  reorderProjects={reorderProjects}
-                  removeProject={removeProject}
-                />
-              )}
+              <CuratePanel
+                config={config}
+                update={update}
+                reorderBlock={reorderBlock}
+                removeBlock={removeBlock}
+              />
               <div className="min-w-0">
                 <div className="sticky top-4">
                   <div className="mb-2 flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
