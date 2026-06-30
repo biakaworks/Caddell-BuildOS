@@ -2006,3 +2006,350 @@ export function aggregateShowcase(projects: ShowcaseProject[]): ShowcaseAggregat
     regions,
   }
 }
+
+// ---------------------------------------------------------------------------
+// Performance report (internal / leadership)
+// ---------------------------------------------------------------------------
+// 12 monthly data points per metric, per business unit, trending to the
+// current dashboard values. Round, illustrative numbers — NOT real Caddell
+// data.
+
+export const REPORT_MONTHS = [
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+] as const
+
+export const REPORT_PERIODS = [
+  { id: "q2-2026", label: "Q2 2026", cadence: "Monthly cadence · trailing 12 months" },
+  { id: "q1-2026", label: "Q1 2026", cadence: "Monthly cadence · trailing 12 months" },
+  { id: "fy-2025", label: "FY 2025", cadence: "Monthly cadence · full year" },
+] as const
+
+export type ReportPeriodId = (typeof REPORT_PERIODS)[number]["id"]
+
+/** Deterministic monotonic-ish ramp from start→end across the 12 months. */
+function ramp(start: number, end: number, decimals = 0, wiggle = 0): number[] {
+  const n = REPORT_MONTHS.length
+  const out: number[] = []
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1)
+    const base = start + (end - start) * t
+    const w = wiggle * Math.sin(i * 1.7) * (1 - t)
+    out.push(Number((base + w).toFixed(decimals)))
+  }
+  out[n - 1] = Number(end.toFixed(decimals))
+  return out
+}
+
+export type PerfPoint = {
+  month: string
+  total: number
+  commercial: number
+  governmental: number
+  international: number | null
+}
+
+/** Build a 12-month series. `total` omitted → summed (count metrics). */
+function buildSeries(
+  c: number[],
+  g: number[],
+  i: (number | null)[],
+  total?: number[],
+): PerfPoint[] {
+  return REPORT_MONTHS.map((m, idx) => ({
+    month: m,
+    commercial: c[idx],
+    governmental: g[idx],
+    international: i[idx],
+    total:
+      total?.[idx] ??
+      Number((c[idx] + g[idx] + (i[idx] ?? 0)).toFixed(0)),
+  }))
+}
+
+export type PerfMetricKey =
+  | "activePursuits"
+  | "winRate"
+  | "projectsInFlight"
+  | "scheduleHealth"
+  | "budgetVariance"
+  | "trir"
+
+/** Which deck a metric may be added to. */
+export type DeckEligibility = "internal" | "both"
+
+export type PerfMetric = {
+  key: PerfMetricKey
+  /** Links to the dashboard KPI tile (KPIS id) for reuse. */
+  kpiId: string
+  label: string
+  /** Headline display value. */
+  value: string
+  delta: string
+  deltaIntent: "good" | "warn" | "bad" | "neutral"
+  goodWhenUp: boolean
+  chart: "area" | "bar" | "line" | "diverging"
+  unitSuffix: string
+  decimals: number
+  /** Reference lines. */
+  target?: number
+  benchmark?: number
+  narrative: string
+  /** Short caption used on deck slides. */
+  caption: string
+  deck: DeckEligibility
+  series: PerfPoint[]
+}
+
+export const PERFORMANCE_METRICS: PerfMetric[] = [
+  {
+    key: "activePursuits",
+    kpiId: "pursuits",
+    label: "Active Pursuits",
+    value: "28",
+    delta: "+12% · +3 this quarter",
+    deltaIntent: "good",
+    goodWhenUp: true,
+    chart: "area",
+    unitSuffix: "",
+    decimals: 0,
+    narrative:
+      "Active pursuits climbed to 28, up three this quarter and 12% year over year. Growth is led by Commercial mission-critical and data center opportunities, with Governmental holding steady on civic and federal solicitations.",
+    caption: "28 active pursuits, up 12% YoY — led by Commercial mission-critical work.",
+    deck: "internal",
+    series: buildSeries(
+      ramp(11, 14, 0, 0.9),
+      ramp(6, 8, 0, 0.6),
+      ramp(5, 6, 0, 0.5),
+    ),
+  },
+  {
+    key: "winRate",
+    kpiId: "winrate",
+    label: "Win Rate (TTM)",
+    value: "41%",
+    delta: "+4 pts YoY",
+    deltaIntent: "good",
+    goodWhenUp: true,
+    chart: "line",
+    unitSuffix: "%",
+    decimals: 0,
+    benchmark: 35,
+    narrative:
+      "Trailing-twelve-month win rate reached 41%, four points above last year and well ahead of the 35% industry benchmark. Commercial leads at 44%, while Governmental remains competitive on best-value federal selections.",
+    caption: "41% TTM win rate, +4 pts YoY and 6 pts above benchmark.",
+    deck: "internal",
+    series: buildSeries(
+      ramp(39, 44, 0, 1.2),
+      ramp(33, 38, 0, 1),
+      // One intentional gap (international, March) to exercise gap handling.
+      ramp(36, 41, 0, 1).map((v, idx) => (idx === 8 ? null : v)),
+      ramp(36, 41, 0, 0.8),
+    ),
+  },
+  {
+    key: "projectsInFlight",
+    kpiId: "inflight",
+    label: "Projects in Flight",
+    value: "19",
+    delta: "Flat vs. last month",
+    deltaIntent: "neutral",
+    goodWhenUp: true,
+    chart: "area",
+    unitSuffix: "",
+    decimals: 0,
+    narrative:
+      "Nineteen projects are in active construction, flat month over month as completions offset new starts. The mix stays balanced across business units, keeping field staffing and oversight predictable.",
+    caption: "19 projects in flight — steady month over month.",
+    deck: "both",
+    series: buildSeries(
+      ramp(8, 9, 0, 0.5),
+      ramp(6, 6, 0, 0.5),
+      ramp(4, 4, 0, 0.4),
+    ),
+  },
+  {
+    key: "scheduleHealth",
+    kpiId: "schedule",
+    label: "Schedule Health",
+    value: "84%",
+    delta: "−3% · 3 projects slipped",
+    deltaIntent: "warn",
+    goodWhenUp: true,
+    chart: "line",
+    unitSuffix: "%",
+    decimals: 0,
+    target: 90,
+    narrative:
+      "Schedule health eased to 84%, three points below target after three projects slipped on long-lead procurement and weather. Recovery plans are in place; Governmental and International remain above the 85% threshold.",
+    caption: "84% on-schedule — three projects slipped, recovery plans active.",
+    deck: "internal",
+    series: buildSeries(
+      ramp(88, 82, 0, 1),
+      ramp(92, 86, 0, 0.8),
+      ramp(90, 84, 0, 0.8),
+      ramp(90, 84, 0, 0.6),
+    ),
+  },
+  {
+    key: "budgetVariance",
+    kpiId: "budget",
+    label: "Budget Variance",
+    value: "+1.8%",
+    delta: "Over baseline",
+    deltaIntent: "warn",
+    goodWhenUp: false,
+    chart: "diverging",
+    unitSuffix: "%",
+    decimals: 1,
+    narrative:
+      "Portfolio budget variance sits at +1.8% over baseline, driven by escalation on two International projects. Most projects remain at or under budget, and value-engineering actions are forecast to narrow variance next quarter.",
+    caption: "+1.8% over baseline — concentrated in two International projects.",
+    deck: "internal",
+    series: buildSeries(
+      ramp(0.5, 1.9, 1, 0.3),
+      ramp(0.2, 1.2, 1, 0.25),
+      ramp(0.5, 2.3, 1, 0.4),
+      ramp(0.4, 1.8, 1, 0.2),
+    ),
+  },
+  {
+    key: "trir",
+    kpiId: "trir",
+    label: "Safety TRIR",
+    value: "0.61",
+    delta: "−18% · target 0.75",
+    deltaIntent: "good",
+    goodWhenUp: false,
+    chart: "line",
+    unitSuffix: "",
+    decimals: 2,
+    target: 0.75,
+    narrative:
+      "Total Recordable Incident Rate improved to 0.61, down 18% year over year and comfortably below the 0.75 target. Sustained toolbox-talk participation and near-miss reporting continue to drive the trend across all units.",
+    caption: "TRIR 0.61 — 18% better YoY and below the 0.75 target.",
+    deck: "both",
+    series: buildSeries(
+      ramp(0.92, 0.58, 2, 0.05),
+      ramp(0.85, 0.55, 2, 0.04),
+      ramp(1.08, 0.7, 2, 0.06),
+      ramp(0.95, 0.61, 2, 0.03),
+    ),
+  },
+]
+
+export const getPerfMetric = (key: PerfMetricKey): PerfMetric | undefined =>
+  PERFORMANCE_METRICS.find((m) => m.key === key)
+
+/** Pursuit-stage breakdown for Active Pursuits (sums to 28). */
+export const PURSUIT_STAGE_BREAKDOWN: { stage: string; count: number }[] = [
+  { stage: "Identified", count: 8 },
+  { stage: "Go/No-Go", count: 6 },
+  { stage: "Proposal", count: 9 },
+  { stage: "Submitted", count: 5 },
+]
+
+/** Win rate by market (with benchmark for context). */
+export const WIN_RATE_BY_MARKET: { market: string; rate: number }[] = [
+  { market: "Aviation", rate: 46 },
+  { market: "Healthcare", rate: 43 },
+  { market: "Industrial", rate: 44 },
+  { market: "Federal", rate: 39 },
+  { market: "Education", rate: 37 },
+]
+
+/** Budget variance by project (diverging around zero baseline). */
+export const BUDGET_VARIANCE_BY_PROJECT: {
+  name: string
+  unit: BusinessUnit
+  variancePct: number
+}[] = [
+  { name: "Overseas Embassy Annex", unit: "International", variancePct: 3.6 },
+  { name: "Gulf Logistics Hub", unit: "Commercial", variancePct: 2.4 },
+  { name: "Riverside Medical Tower", unit: "Commercial", variancePct: 1.1 },
+  { name: "Regional Water Treatment", unit: "Governmental", variancePct: -0.8 },
+  { name: "Federal Courthouse Renovation", unit: "Governmental", variancePct: -1.4 },
+  { name: "K-12 Campus Expansion", unit: "Commercial", variancePct: -2.2 },
+]
+
+/** The three projects behind the schedule-health dip. Generic names. */
+export const SLIPPED_PROJECTS: {
+  name: string
+  unit: BusinessUnit
+  slipWeeks: number
+  cause: string
+  recovery: string
+}[] = [
+  {
+    name: "Riverside Medical Tower",
+    unit: "Commercial",
+    slipWeeks: 3,
+    cause: "Long-lead switchgear delivery",
+    recovery: "Re-sequenced fit-out; air freight on critical gear",
+  },
+  {
+    name: "Gulf Logistics Hub",
+    unit: "Commercial",
+    slipWeeks: 2,
+    cause: "Severe weather days",
+    recovery: "Added second concrete crew",
+  },
+  {
+    name: "Northgate Mixed-Use",
+    unit: "International",
+    slipWeeks: 2,
+    cause: "Permit revision cycle",
+    recovery: "Parallel-tracked inspections with AHJ",
+  },
+]
+
+/** Cross-division roll-up across headline metrics (current values). */
+export type DivisionRollup = {
+  unit: BusinessUnit
+  winRate: number
+  scheduleHealth: number
+  budgetVariance: number
+  trir: number
+  activePursuits: number
+  projectsInFlight: number
+}
+
+export const DIVISION_ROLLUP: DivisionRollup[] = [
+  {
+    unit: "Commercial",
+    winRate: 44,
+    scheduleHealth: 82,
+    budgetVariance: 1.9,
+    trir: 0.58,
+    activePursuits: 14,
+    projectsInFlight: 9,
+  },
+  {
+    unit: "Governmental",
+    winRate: 38,
+    scheduleHealth: 86,
+    budgetVariance: 1.2,
+    trir: 0.55,
+    activePursuits: 8,
+    projectsInFlight: 6,
+  },
+  {
+    unit: "International",
+    winRate: 41,
+    scheduleHealth: 84,
+    budgetVariance: 2.3,
+    trir: 0.7,
+    activePursuits: 6,
+    projectsInFlight: 4,
+  },
+]

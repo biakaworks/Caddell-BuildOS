@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { Presentation, Sparkles } from "lucide-react"
 import { UNIT_ROLLUPS, formatCurrency, type UnitRollup } from "@/lib/mock-data"
@@ -8,9 +8,13 @@ import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader } from "@/components/buildos/ui"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { PerformanceReport } from "@/components/buildos/reporting/performance-report"
+
+type ReportingTab = "overview" | "performance"
 
 export function ReportingView() {
   const { unit, openAsk } = useApp()
+  const [tab, setTab] = useState<ReportingTab>("overview")
 
   const rollups = useMemo(
     () => UNIT_ROLLUPS.filter((r) => unit === "All" || r.unit === unit),
@@ -46,6 +50,37 @@ export function ReportingView() {
         </div>
       </PageHeader>
 
+      {/* View switcher */}
+      <div className="mt-5 inline-flex rounded-lg border border-border bg-card p-1 print-hide">
+        {(
+          [
+            { key: "overview", label: "Overview" },
+            { key: "performance", label: "Performance report" },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            aria-pressed={tab === t.key}
+            className={cn(
+              "rounded-md px-3.5 py-1.5 text-sm font-medium transition-colors",
+              tab === t.key
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === "performance" ? (
+        <div className="mt-6">
+          <PerformanceReport />
+        </div>
+      ) : (
+        <>
       {/* Portfolio totals */}
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <BigStat label="Total backlog" value={formatCurrency(totals.backlog)} />
@@ -78,6 +113,8 @@ export function ReportingView() {
           <UnitScorecard key={r.unit} rollup={r} />
         ))}
       </div>
+        </>
+      )}
     </PageContainer>
   )
 }
