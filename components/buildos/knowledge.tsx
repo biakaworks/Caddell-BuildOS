@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import {
   FileText,
   FileBox,
@@ -9,8 +10,9 @@ import {
   FileSpreadsheet,
   Search,
   Sparkles,
+  ArrowUpRight,
 } from "lucide-react"
-import { KNOWLEDGE_DOCS, type KnowledgeDoc } from "@/lib/mock-data"
+import { KNOWLEDGE_DOCS, getProjectSlugByName, type KnowledgeDoc } from "@/lib/mock-data"
 import { useApp } from "@/components/buildos/app-context"
 import { PageContainer, PageHeader } from "@/components/buildos/ui"
 import { Button } from "@/components/ui/button"
@@ -26,9 +28,9 @@ const TYPE_ICON: Record<KnowledgeDoc["type"], typeof FileText> = {
 
 const SYSTEMS = ["All", "Facade", "Enclosure", "Electrical", "Mechanical", "Structure", "Logistics"]
 
-export function KnowledgeView() {
+export function KnowledgeView({ initialQuery }: { initialQuery?: string }) {
   const { unit, openAsk } = useApp()
-  const [query, setQuery] = useState("")
+  const [query, setQuery] = useState(initialQuery ?? "")
   const [system, setSystem] = useState("All")
 
   const results = useMemo(() => {
@@ -88,7 +90,7 @@ export function KnowledgeView() {
       </p>
       <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
         {results.map((doc) => (
-          <DocCard key={doc.id} doc={doc} />
+          <DocCard key={doc.id} doc={doc} onAsk={openAsk} />
         ))}
         {results.length === 0 ? (
           <div className="col-span-full rounded-2xl border border-dashed border-border py-12 text-center text-sm text-muted-foreground">
@@ -100,10 +102,12 @@ export function KnowledgeView() {
   )
 }
 
-function DocCard({ doc }: { doc: KnowledgeDoc }) {
+function DocCard({ doc, onAsk }: { doc: KnowledgeDoc; onAsk: (seed?: string) => void }) {
   const Icon = TYPE_ICON[doc.type]
-  return (
-    <article className="flex gap-4 rounded-2xl bg-card p-4 ring-1 ring-border transition-all hover:ring-primary/40">
+  const slug = getProjectSlugByName(doc.project)
+
+  const body = (
+    <>
       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-foreground">
         <Icon className="size-5" />
       </div>
@@ -118,13 +122,39 @@ function DocCard({ doc }: { doc: KnowledgeDoc }) {
           {doc.project} · {doc.date}
         </p>
         <p className="mt-2 text-sm leading-relaxed text-foreground/80">{doc.snippet}</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
           <Tag>{doc.system}</Tag>
           <Tag>{doc.phase}</Tag>
           <Tag>{doc.delivery}</Tag>
+          <span className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-primary">
+            {slug ? "Open project" : "Open record"}
+            <ArrowUpRight className="size-3.5" />
+          </span>
         </div>
       </div>
-    </article>
+    </>
+  )
+
+  const className =
+    "flex w-full gap-4 rounded-2xl bg-card p-4 text-left ring-1 ring-border transition-all hover:ring-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+
+  // "Open a source record": tied to a built project → navigate there; otherwise
+  // open Ask BuildOS to summarize the underlying record.
+  if (slug) {
+    return (
+      <Link href={`/projects/${slug}`} className={className}>
+        {body}
+      </Link>
+    )
+  }
+  return (
+    <button
+      type="button"
+      onClick={() => onAsk(`Open and summarize the source record "${doc.title}" from ${doc.project}.`)}
+      className={className}
+    >
+      {body}
+    </button>
   )
 }
 

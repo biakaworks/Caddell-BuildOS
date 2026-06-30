@@ -1,5 +1,8 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Search, Sparkles, ChevronDown, Check, Menu, Bell, Eye, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -15,13 +18,34 @@ import {
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { useApp } from "./app-context"
 import { SidebarNav } from "./sidebar"
-import { BUSINESS_UNITS } from "@/lib/mock-data"
+import { BUSINESS_UNITS, ATTENTION_ITEMS } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 
 const UNIT_OPTIONS = ["All", ...BUSINESS_UNITS] as const
 
 export function Topbar() {
   const { unit, setUnit, openAsk, ownerView, setOwnerView } = useApp()
+  const router = useRouter()
+  const [search, setSearch] = useState("")
+  const searchRef = useRef<HTMLInputElement>(null)
+
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault()
+    const q = search.trim()
+    router.push(q ? `/knowledge?q=${encodeURIComponent(q)}` : "/knowledge")
+  }
+
+  // ⌘K / Ctrl+K focuses the global search
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:px-6">
@@ -41,10 +65,13 @@ export function Topbar() {
       </Sheet>
 
       {/* Global search */}
-      <div className="relative hidden max-w-md flex-1 items-center md:flex">
+      <form onSubmit={submitSearch} className="relative hidden max-w-md flex-1 items-center md:flex">
         <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
         <input
+          ref={searchRef}
           type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Search pursuits, projects, RFIs, knowledge…"
           aria-label="Global search"
           className="h-9 w-full rounded-lg border border-border bg-secondary/60 pl-9 pr-16 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:bg-card focus:ring-3 focus:ring-ring/20"
@@ -52,13 +79,14 @@ export function Topbar() {
         <kbd className="pointer-events-none absolute right-2.5 hidden rounded border border-border bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground lg:inline-block">
           ⌘K
         </kbd>
-      </div>
+      </form>
 
       <Button
         variant="ghost"
         size="icon"
         className="md:hidden"
         aria-label="Search"
+        onClick={() => router.push("/knowledge")}
       >
         <Search />
       </Button>
@@ -114,10 +142,46 @@ export function Topbar() {
           <PhaseBadge phase={3} className="ml-0.5" />
         </Button>
 
-        <Button variant="ghost" size="icon" aria-label="Notifications" className="relative hidden sm:flex">
-          <Bell />
-          <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon" aria-label="Notifications" className="relative hidden sm:flex" />
+            }
+          >
+            <Bell />
+            <span className="absolute right-2 top-2 size-1.5 rounded-full bg-danger" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-80">
+            <DropdownMenuLabel>Needs attention</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {ATTENTION_ITEMS.slice(0, 5).map((item) => (
+              <DropdownMenuItem
+                key={item.id}
+                render={<Link href={item.href} />}
+                className="flex-col items-start gap-0.5"
+              >
+                <span className="flex w-full items-center justify-between gap-2">
+                  <span className="truncate text-sm font-medium text-foreground">{item.title}</span>
+                  <span
+                    className={cn(
+                      "shrink-0 text-[11px] font-medium",
+                      item.severity === "critical" ? "text-danger-strong" : "text-warning-strong",
+                    )}
+                  >
+                    {item.severity === "critical" ? "Critical" : "At risk"}
+                  </span>
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {item.project} · {item.age}
+                </span>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem render={<Link href="/" />} className="justify-center text-sm font-medium text-primary">
+              View all on dashboard
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger

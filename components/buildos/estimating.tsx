@@ -1,7 +1,8 @@
 "use client"
 
 import { useMemo } from "react"
-import { AlertTriangle, History, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { AlertTriangle, ArrowUpRight, History, Sparkles } from "lucide-react"
 import {
   ESTIMATE_ACCURACY,
   ESTIMATE_ASSEMBLIES,
@@ -62,7 +63,15 @@ export function EstimatingView() {
             </p>
           </div>
         </div>
-        <Button variant="outline" className="shrink-0 border-info/40 text-info hover:bg-info-muted">
+        <Button
+          variant="outline"
+          className="shrink-0 border-info/40 text-info hover:bg-info-muted"
+          onClick={() =>
+            openAsk(
+              `Auto-draft a conceptual estimate for ${ESTIMATE_PROJECT.name} by seeding each assembly from comparable completed Caddell projects.`,
+            )
+          }
+        >
           Generate draft estimate
         </Button>
       </div>
@@ -74,6 +83,15 @@ export function EstimatingView() {
         <BasisStat label="Delivery" value={ESTIMATE_PROJECT.delivery} />
         <BasisStat label="Basis" value={ESTIMATE_PROJECT.basis} />
       </div>
+
+      <Link
+        href="/projects/k-12-campus-expansion"
+        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary transition-colors hover:underline"
+      >
+        <History className="size-4" />
+        Reference project: K-12 Campus Expansion
+        <ArrowUpRight className="size-3.5" />
+      </Link>
 
       <div className="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-3">
         {/* Assemblies table */}

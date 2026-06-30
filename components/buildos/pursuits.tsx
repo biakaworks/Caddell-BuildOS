@@ -1,9 +1,11 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import {
   ArrowUpRight,
   Award,
+  Calculator,
   Filter,
   Flag,
   Search,
@@ -346,7 +348,13 @@ function PursuitDetail({ pursuit, onClose }: { pursuit: Pursuit; onClose: () => 
             <Sparkles className="size-4" />
             Draft win themes
           </Button>
-          <Button variant="outline" className="flex-1">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={() =>
+              openAsk(`Outline a capture plan for ${pursuit.name} — key milestones, owners, and gate criteria.`)
+            }
+          >
             <ArrowUpRight className="size-4" />
             Open capture plan
           </Button>
@@ -459,6 +467,15 @@ function ComparableCard({ comparable }: { comparable: ComparableProject }) {
           {comparable.subcontractor.rating.toFixed(1)}
         </span>
       </div>
+
+      <Link
+        href="/estimating"
+        className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:underline"
+      >
+        <Calculator className="size-3.5" />
+        View conceptual estimate built from this work
+        <ArrowUpRight className="size-3.5" />
+      </Link>
     </div>
   )
 }

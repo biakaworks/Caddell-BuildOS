@@ -1058,6 +1058,11 @@ export const UNIT_ROLLUPS: UnitRollup[] = [
 export const getProject = (slug: string): Project | undefined =>
   PROJECTS.find((p) => p.slug === slug)
 
+// Resolve a project NAME (as referenced from comparables, knowledge docs, citations)
+// to a built project slug, when one exists.
+export const getProjectSlugByName = (name: string): string | undefined =>
+  PROJECTS.find((p) => p.name.toLowerCase() === name.trim().toLowerCase())?.slug
+
 // --- Trade Partners --------------------------------------------------------
 export type PrequalStatus = "Qualified" | "Conditional" | "In Review" | "Expired"
 export type TradePartner = {

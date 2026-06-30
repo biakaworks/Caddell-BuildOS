@@ -1,5 +1,10 @@
 import { KnowledgeView } from "@/components/buildos/knowledge"
 
-export default function KnowledgePage() {
-  return <KnowledgeView />
+export default async function KnowledgePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>
+}) {
+  const { q } = await searchParams
+  return <KnowledgeView initialQuery={q} />
 }

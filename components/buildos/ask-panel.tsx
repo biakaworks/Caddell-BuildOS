@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import {
   Sparkles,
   ArrowUp,
@@ -8,8 +9,10 @@ import {
   ShieldCheck,
   Lock,
   Copy,
+  Check,
   ThumbsUp,
   ThumbsDown,
+  ArrowUpRight,
 } from "lucide-react"
 import {
   Sheet,
@@ -23,7 +26,7 @@ import { Badge } from "@/components/ui/badge"
 import { useApp } from "./app-context"
 import { cn } from "@/lib/utils"
 
-type Citation = { id: number; label: string; source: string }
+type Citation = { id: number; label: string; source: string; href: string }
 type Draft = {
   title: string
   body: { text: string; cite?: number }[]
@@ -50,8 +53,8 @@ function buildDraft(query: string): Draft {
         { text: ". Recommend escalating RFI-204 to the structural EOR and confirming the recovery plan." },
       ],
       citations: [
-        { id: 1, label: "RFI-204 record", source: "Regional Logistics Center · RFIs" },
-        { id: 2, label: "RFI log", source: "Regional Logistics Center · RFIs" },
+        { id: 1, label: "RFI-204 record", source: "Regional Logistics Center · RFIs", href: "/projects/regional-logistics-center?tab=rfis" },
+        { id: 2, label: "RFI log", source: "Regional Logistics Center · RFIs", href: "/projects/regional-logistics-center?tab=rfis" },
       ],
     }
   }
@@ -66,8 +69,8 @@ function buildDraft(query: string): Draft {
         { text: " in CMaR pursuits with public clients." },
       ],
       citations: [
-        { id: 1, label: "Occupied-facility phasing plan", source: "Federal Courthouse Renovation · Closeout" },
-        { id: 2, label: "Pursuit debrief notes", source: "Knowledge · Civic" },
+        { id: 1, label: "Occupied-facility phasing plan", source: "Federal Courthouse Renovation · Closeout", href: "/projects/federal-courthouse-renovation?tab=schedule" },
+        { id: 2, label: "Pursuit debrief notes", source: "Knowledge · Civic", href: "/knowledge?q=courthouse" },
       ],
     }
   }
@@ -82,8 +85,8 @@ function buildDraft(query: string): Draft {
         { text: ". Recommend a conditional Go pending due-diligence gate." },
       ],
       citations: [
-        { id: 1, label: "Pursuit track record", source: "Pursuits · International" },
-        { id: 2, label: "Marine works risk register", source: "Knowledge · Infrastructure" },
+        { id: 1, label: "Pursuit track record", source: "Pursuits · International", href: "/pursuits" },
+        { id: 2, label: "Marine works risk register", source: "Knowledge · Infrastructure", href: "/knowledge?q=marine" },
       ],
     }
   }
@@ -97,8 +100,8 @@ function buildDraft(query: string): Draft {
       { text: ". Lead with speed-to-power as the differentiator." },
     ],
     citations: [
-      { id: 1, label: "Switchgear procurement log", source: "Inland Hyperscale Phase II · Closeout" },
-      { id: 2, label: "Safety summary", source: "Regional Cloud Node · Closeout" },
+      { id: 1, label: "Switchgear procurement log", source: "Inland Hyperscale Phase II · Closeout", href: "/knowledge?q=switchgear" },
+      { id: 2, label: "Safety summary", source: "Regional Cloud Node · Closeout", href: "/knowledge?q=safety" },
     ],
   }
 }
@@ -108,7 +111,20 @@ export function AskPanel() {
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<"idle" | "thinking" | "done">("idle")
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [copied, setCopied] = useState(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function copyDraft() {
+    if (!draft) return
+    const text = `${draft.title}\n\n${draft.body.map((s) => s.text).join("")}`
+    navigator.clipboard?.writeText(text).then(
+      () => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1800)
+      },
+      () => {},
+    )
+  }
 
   useEffect(() => {
     if (askOpen && askSeed) {
@@ -236,8 +252,8 @@ export function AskPanel() {
                       ))}
                     </p>
                     <div className="mt-3 flex items-center gap-1 border-t border-border pt-3">
-                      <Button variant="ghost" size="xs" className="text-muted-foreground">
-                        <Copy /> Copy
+                      <Button variant="ghost" size="xs" onClick={copyDraft} className="text-muted-foreground">
+                        {copied ? <Check /> : <Copy />} {copied ? "Copied" : "Copy"}
                       </Button>
                       <Button variant="ghost" size="icon-xs" aria-label="Helpful" className="text-muted-foreground">
                         <ThumbsUp />
@@ -254,21 +270,24 @@ export function AskPanel() {
                     </p>
                     <div className="space-y-2">
                       {draft.citations.map((c) => (
-                        <div
+                        <Link
                           key={c.id}
-                          className="flex items-start gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5"
+                          href={c.href}
+                          onClick={() => setAskOpen(false)}
+                          className="group flex items-start gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5 transition-colors hover:border-primary/40 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded bg-primary/10 text-[10px] font-semibold text-primary">
                             {c.id}
                           </span>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
                               <FileText className="size-3.5 shrink-0 text-muted-foreground" />
                               {c.label}
                             </div>
                             <div className="truncate text-xs text-muted-foreground">{c.source}</div>
                           </div>
-                        </div>
+                          <ArrowUpRight className="mt-0.5 size-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                        </Link>
                       ))}
                     </div>
                   </div>

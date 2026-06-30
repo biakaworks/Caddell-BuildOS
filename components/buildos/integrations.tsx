@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import {
   Plug,
   Database,
@@ -118,6 +119,7 @@ export function IntegrationsView() {
 
 function IntegrationCard({ integration }: { integration: Integration }) {
   const isConnected = integration.status === "Connected" || integration.status === "Syncing"
+  const [requested, setRequested] = useState(false)
   return (
     <div className="flex flex-col rounded-xl border border-border bg-card p-4 transition-shadow hover:shadow-sm">
       <div className="flex items-start justify-between gap-2">
@@ -132,9 +134,15 @@ function IntegrationCard({ integration }: { integration: Integration }) {
           <span>{integration.lastSync}</span>
         </div>
       ) : (
-        <Button variant="outline" size="sm" className="mt-3 w-full gap-1.5">
-          <Plus className="size-3.5" />
-          Connect
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-3 w-full gap-1.5"
+          disabled={requested}
+          onClick={() => setRequested(true)}
+        >
+          {requested ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
+          {requested ? "Connection requested" : "Connect"}
         </Button>
       )}
     </div>
