@@ -1057,3 +1057,208 @@ export const UNIT_ROLLUPS: UnitRollup[] = [
 
 export const getProject = (slug: string): Project | undefined =>
   PROJECTS.find((p) => p.slug === slug)
+
+// --- Trade Partners --------------------------------------------------------
+export type PrequalStatus = "Qualified" | "Conditional" | "In Review" | "Expired"
+export type TradePartner = {
+  id: string
+  name: string
+  trade: string
+  region: string
+  activeProjects: number
+  openItems: number
+  safetyEmr: number // experience modification rate
+  onTimePct: number
+  prequal: PrequalStatus
+  capacity: "Available" | "Near capacity" | "Committed"
+  tier: "Strategic" | "Preferred" | "Approved"
+}
+
+export const TRADE_PARTNERS: TradePartner[] = [
+  {
+    id: "tp-01",
+    name: "Cornerstone Concrete Co.",
+    trade: "Concrete / Structural",
+    region: "Southeast US",
+    activeProjects: 4,
+    openItems: 3,
+    safetyEmr: 0.78,
+    onTimePct: 96,
+    prequal: "Qualified",
+    capacity: "Near capacity",
+    tier: "Strategic",
+  },
+  {
+    id: "tp-02",
+    name: "Apex Steel Erectors",
+    trade: "Structural Steel",
+    region: "National",
+    activeProjects: 3,
+    openItems: 1,
+    safetyEmr: 0.85,
+    onTimePct: 92,
+    prequal: "Qualified",
+    capacity: "Committed",
+    tier: "Strategic",
+  },
+  {
+    id: "tp-03",
+    name: "Meridian Mechanical",
+    trade: "HVAC / Mechanical",
+    region: "Southeast US",
+    activeProjects: 5,
+    openItems: 6,
+    safetyEmr: 0.91,
+    onTimePct: 88,
+    prequal: "Conditional",
+    capacity: "Near capacity",
+    tier: "Preferred",
+  },
+  {
+    id: "tp-04",
+    name: "Voltway Electric",
+    trade: "Electrical",
+    region: "National",
+    activeProjects: 2,
+    openItems: 2,
+    safetyEmr: 0.72,
+    onTimePct: 94,
+    prequal: "Qualified",
+    capacity: "Available",
+    tier: "Preferred",
+  },
+  {
+    id: "tp-05",
+    name: "ClearSpan Glazing",
+    trade: "Curtain Wall / Glazing",
+    region: "Southeast US",
+    activeProjects: 1,
+    openItems: 4,
+    safetyEmr: 1.04,
+    onTimePct: 79,
+    prequal: "In Review",
+    capacity: "Available",
+    tier: "Approved",
+  },
+  {
+    id: "tp-06",
+    name: "Summit Earthworks",
+    trade: "Sitework / Earthwork",
+    region: "International",
+    activeProjects: 2,
+    openItems: 0,
+    safetyEmr: 0.88,
+    onTimePct: 90,
+    prequal: "Qualified",
+    capacity: "Available",
+    tier: "Approved",
+  },
+  {
+    id: "tp-07",
+    name: "Harbor Fire Protection",
+    trade: "Fire Protection",
+    region: "Southeast US",
+    activeProjects: 3,
+    openItems: 1,
+    safetyEmr: 0.96,
+    onTimePct: 86,
+    prequal: "Expired",
+    capacity: "Near capacity",
+    tier: "Approved",
+  },
+]
+
+// --- Integrations Hub (Phase 2) -------------------------------------------
+export type IntegrationStatus = "Connected" | "Available" | "Syncing"
+export type IntegrationCategory =
+  | "ERP & Accounting"
+  | "Scheduling"
+  | "Document Management"
+  | "BIM & Design"
+  | "Field & Safety"
+export type Integration = {
+  id: string
+  name: string
+  category: IntegrationCategory
+  status: IntegrationStatus
+  description: string
+  lastSync?: string
+  records?: string
+}
+
+export const INTEGRATIONS: Integration[] = [
+  {
+    id: "int-erp",
+    name: "Enterprise ERP / Accounting",
+    category: "ERP & Accounting",
+    status: "Connected",
+    description: "Cost codes, commitments, and pay applications sync nightly into project budgets.",
+    lastSync: "2 hours ago",
+    records: "18 cost ledgers",
+  },
+  {
+    id: "int-sched",
+    name: "Primavera P6",
+    category: "Scheduling",
+    status: "Connected",
+    description: "Critical-path schedules and float analytics feed the schedule health indicators.",
+    lastSync: "Today, 6:00 AM",
+    records: "22 active schedules",
+  },
+  {
+    id: "int-dms",
+    name: "Document Management",
+    category: "Document Management",
+    status: "Syncing",
+    description: "Drawings, specs, and closeout documents index into Knowledge search.",
+    lastSync: "In progress — 64%",
+    records: "41,200 documents",
+  },
+  {
+    id: "int-bim",
+    name: "BIM 360 / Model Coordination",
+    category: "BIM & Design",
+    status: "Connected",
+    description: "Model versions and clash reports link to affected scope on Project Detail.",
+    lastSync: "Yesterday",
+    records: "12 federated models",
+  },
+  {
+    id: "int-field",
+    name: "Field & Daily Reports",
+    category: "Field & Safety",
+    status: "Connected",
+    description: "Daily reports, photos, and safety observations captured from the field app.",
+    lastSync: "15 minutes ago",
+    records: "9 crews reporting",
+  },
+  {
+    id: "int-safety",
+    name: "Safety & Incident Management",
+    category: "Field & Safety",
+    status: "Available",
+    description: "Centralize observations, near-misses, and OSHA logs to drive the safety roll-up.",
+  },
+  {
+    id: "int-estimating",
+    name: "Conceptual Estimating Database",
+    category: "ERP & Accounting",
+    status: "Available",
+    description: "Historical unit costs and assemblies to seed conceptual estimates automatically.",
+  },
+  {
+    id: "int-procure",
+    name: "Procurement & Bid Management",
+    category: "Document Management",
+    status: "Available",
+    description: "Bid packages, leveling sheets, and subcontractor proposals tied to trade partners.",
+  },
+]
+
+// --- Predictive scoring (Phase 3) -----------------------------------------
+export type WinScore = {
+  pursuitId: string
+  probability: number
+  drivers: { label: string; impact: "positive" | "negative" }[]
+  confidence: "High" | "Medium" | "Low"
+}

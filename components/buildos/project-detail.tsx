@@ -21,6 +21,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
+import { PhaseBadge } from "@/components/buildos/phase"
+import { RiskAnalyticsTab, RealityCaptureTab, MobileFieldPreview } from "@/components/buildos/project-extras"
 
 const healthLabel: Record<Health, string> = {
   "on-track": "On track",
@@ -35,6 +37,8 @@ const TABS = [
   { value: "rfis", label: "RFIs" },
   { value: "submittals", label: "Submittals" },
   { value: "field", label: "Field" },
+  { value: "risk", label: "Risk", phase: 2 },
+  { value: "capture", label: "Reality Capture", phase: 3 },
 ] as const
 
 export function ProjectDetail({ project, initialTab }: { project: Project; initialTab?: string }) {
@@ -110,6 +114,7 @@ export function ProjectDetail({ project, initialTab }: { project: Project; initi
               {t.label}
               {t.value === "rfis" && openRfis > 0 ? <Count n={openRfis} /> : null}
               {t.value === "submittals" && openSubs > 0 ? <Count n={openSubs} /> : null}
+              {"phase" in t && t.phase ? <PhaseBadge phase={t.phase} className="ml-1.5" /> : null}
             </TabsTrigger>
           ))}
         </TabsList>

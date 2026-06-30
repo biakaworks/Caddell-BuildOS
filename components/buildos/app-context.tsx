@@ -12,6 +12,8 @@ type AppContextValue = {
   setAskOpen: (v: boolean) => void
   askSeed: string
   openAsk: (seed?: string) => void
+  ownerView: boolean
+  setOwnerView: (v: boolean) => void
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
@@ -20,6 +22,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [unit, setUnit] = useState<UnitFilter>("All")
   const [askOpen, setAskOpen] = useState(false)
   const [askSeed, setAskSeed] = useState("")
+  const [ownerView, setOwnerView] = useState(false)
 
   const value = useMemo<AppContextValue>(
     () => ({
@@ -32,8 +35,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setAskSeed(seed)
         setAskOpen(true)
       },
+      ownerView,
+      setOwnerView,
     }),
-    [unit, askOpen, askSeed],
+    [unit, askOpen, askSeed, ownerView],
   )
 
   return <AppContext value={value}>{children}</AppContext>

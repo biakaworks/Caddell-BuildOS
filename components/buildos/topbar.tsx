@@ -1,8 +1,9 @@
 "use client"
 
-import { Search, Sparkles, ChevronDown, Check, Menu, Bell } from "lucide-react"
+import { Search, Sparkles, ChevronDown, Check, Menu, Bell, Eye, Building } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { PhaseBadge } from "./phase"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -20,7 +21,7 @@ import { cn } from "@/lib/utils"
 const UNIT_OPTIONS = ["All", ...BUSINESS_UNITS] as const
 
 export function Topbar() {
-  const { unit, setUnit, openAsk } = useApp()
+  const { unit, setUnit, openAsk, ownerView, setOwnerView } = useApp()
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:px-6">
@@ -99,6 +100,19 @@ export function Topbar() {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* View as Owner — Phase 3 external portal */}
+        <Button
+          variant={ownerView ? "default" : "outline"}
+          size="sm"
+          onClick={() => setOwnerView(!ownerView)}
+          aria-pressed={ownerView}
+          className={cn("hidden items-center gap-1.5 md:flex", ownerView && "bg-accent text-accent-foreground hover:bg-accent/90")}
+        >
+          {ownerView ? <Building className="size-4" /> : <Eye className="size-4" />}
+          <span className="hidden lg:inline">{ownerView ? "Owner View" : "View as Owner"}</span>
+          <PhaseBadge phase={3} className="ml-0.5" />
+        </Button>
 
         <Button variant="ghost" size="icon" aria-label="Notifications" className="relative hidden sm:flex">
           <Bell />
