@@ -139,3 +139,82 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* --- Leaflet theming (scoped to the Portfolio map module) --- */
+.leaflet-container {
+  font-family: inherit;
+  background: var(--muted);
+  outline: none;
+}
+.leaflet-container a {
+  color: var(--primary);
+}
+.leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.25);
+}
+.leaflet-popup-content {
+  margin: 0;
+  width: auto !important;
+  line-height: 1.4;
+}
+.leaflet-popup-tip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+.leaflet-popup-close-button {
+  display: none !important;
+}
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--card);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.pm-pin {
+  display: block;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 2px var(--card), 0 1px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.pm-pin--current {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--primary);
+}
+.pm-pin--future {
+  width: 16px;
+  height: 16px;
+  border-radius: 9999px;
+  background: var(--warning);
+}
+.pm-pin--lead {
+  width: 15px;
+  height: 15px;
+  border-radius: 9999px;
+  background: var(--card);
+  border: 2px dashed var(--muted-foreground);
+  box-shadow: 0 0 0 2px var(--card), 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+.pm-pin--office {
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+  background: var(--foreground);
+}
+.pm-pin--active {
+  transform: scale(1.35);
+  box-shadow: 0 0 0 3px var(--ring), 0 2px 8px rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pm-pin {
+    transition: none;
+  }
+}

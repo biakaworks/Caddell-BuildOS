@@ -9,6 +9,7 @@ import {
   PromoStrip,
   PredictiveInsights,
 } from "@/components/buildos/dashboard"
+import { PortfolioMap } from "@/components/buildos/portfolio-map/portfolio-map"
 import { useApp } from "@/components/buildos/app-context"
 
 export default function DashboardPage() {
@@ -31,6 +32,7 @@ export default function DashboardPage() {
       <div className="mt-6 space-y-6">
         <KpiTiles />
         <PromoStrip />
+        <PortfolioMap />
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           <div className="xl:col-span-2">
             <NeedsAttention />
