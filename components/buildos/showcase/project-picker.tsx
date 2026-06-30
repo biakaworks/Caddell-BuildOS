@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react"
 import { Check, Wand2 } from "lucide-react"
 import {
-  ALL_SHOWCASE_PROJECTS,
+  SHOWCASE_PROJECTS as ALL_SHOWCASE_PROJECTS,
   SHOWCASE_SORTS,
   formatCurrency,
   sortShowcaseProjects,

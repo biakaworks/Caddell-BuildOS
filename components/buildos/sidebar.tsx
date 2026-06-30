@@ -14,6 +14,7 @@ import {
   Handshake,
   Plug,
   Map,
+  Presentation,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PhaseBadge, type Phase } from "./phase"
@@ -27,6 +28,7 @@ const PRIMARY: NavItem[] = [
   { label: "Projects", href: "/projects", icon: Building2 },
   { label: "Knowledge", href: "/knowledge", icon: BookOpen },
   { label: "Reporting", href: "/reporting", icon: BarChart3 },
+  { label: "Portfolio Builder", href: "/showcase", icon: Presentation },
 ]
 
 const SECONDARY: NavItem[] = [
