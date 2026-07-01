@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, use, useCallback, useMemo, useState } from "react"
+import { createContext, use, useCallback, useEffect, useMemo, useState } from "react"
 import {
   ACCOUNT_USERS,
   DEFAULT_NOTIFICATIONS,
@@ -13,6 +13,10 @@ import type { BusinessUnit } from "@/lib/mock-data"
 
 /** The demo account we sign in as. */
 const DEMO_USER_ID = "u-jordan-cole"
+
+/** Session-persistence keys so a refresh doesn't drop the demo session. */
+const SESSION_KEY = "buildos.signedIn"
+const ROLE_KEY = "buildos.role"
 
 export type InviteInput = {
   name: string
@@ -52,13 +56,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<NotificationPref[]>(DEFAULT_NOTIFICATIONS)
   const [mfaEnabled, setMfaEnabled] = useState(true)
 
+  // Rehydrate the demo session from localStorage on mount so a page refresh
+  // (or deep-linking to /admin) doesn't bounce the user back to sign-in.
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (window.localStorage.getItem(SESSION_KEY) === "true") setSignedIn(true)
+    const savedRole = window.localStorage.getItem(ROLE_KEY) as Role | null
+    if (savedRole) {
+      setUsers((prev) => prev.map((u) => (u.id === DEMO_USER_ID ? { ...u, role: savedRole } : u)))
+    }
+  }, [])
+
   const currentUser = useMemo(
     () => users.find((u) => u.id === currentUserId) ?? users[0],
     [users, currentUserId],
   )
 
-  const signIn = useCallback(() => setSignedIn(true), [])
-  const signOut = useCallback(() => setSignedIn(false), [])
+  const signIn = useCallback(() => {
+    setSignedIn(true)
+    if (typeof window !== "undefined") window.localStorage.setItem(SESSION_KEY, "true")
+  }, [])
+  const signOut = useCallback(() => {
+    setSignedIn(false)
+    if (typeof window !== "undefined") window.localStorage.removeItem(SESSION_KEY)
+  }, [])
 
   const patchUser = useCallback(
     (id: string, patch: Partial<AccountUser>) =>
@@ -67,7 +88,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   )
 
   const setRole = useCallback(
-    (role: Role) => patchUser(currentUserId, { role }),
+    (role: Role) => {
+      patchUser(currentUserId, { role })
+      if (typeof window !== "undefined") window.localStorage.setItem(ROLE_KEY, role)
+    },
     [patchUser, currentUserId],
   )
 
