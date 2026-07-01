@@ -15,9 +15,13 @@ import {
   Plug,
   Map,
   Presentation,
+  ShieldCheck,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { PhaseBadge, type Phase } from "./phase"
+import { useAuth } from "./account/auth-context"
+
+const ADMIN_ITEM: NavItem = { label: "Admin", href: "/admin", icon: ShieldCheck }
 
 type NavItem = { label: string; href: string; icon: typeof LayoutDashboard; phase?: Phase }
 
@@ -66,6 +70,8 @@ function NavLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void 
 }
 
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  const { currentUser } = useAuth()
+  const isAdmin = currentUser.role === "Admin"
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center gap-2.5 px-5">
@@ -103,6 +109,22 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             </li>
           ))}
         </ul>
+
+        {isAdmin && (
+          <>
+            <div className="my-3 flex items-center gap-2 px-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                Administration
+              </span>
+              <span className="h-px flex-1 bg-sidebar-border" />
+            </div>
+            <ul className="space-y-1">
+              <li>
+                <NavLink item={ADMIN_ITEM} onNavigate={onNavigate} />
+              </li>
+            </ul>
+          </>
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border px-4 py-3.5">
