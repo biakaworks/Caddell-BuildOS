@@ -3,9 +3,23 @@
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Search, Sparkles, ChevronDown, Check, Menu, Bell, Eye, Building } from "lucide-react"
+import {
+  Search,
+  Sparkles,
+  ChevronDown,
+  Check,
+  Menu,
+  Bell,
+  Eye,
+  Building,
+  User,
+  Settings,
+  ShieldCheck,
+  LogOut,
+  UserCog,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PhaseBadge } from "./phase"
 import {
   DropdownMenu,
@@ -17,15 +31,24 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
 import { useApp } from "./app-context"
+import { useAuth } from "./account/auth-context"
 import { SidebarNav } from "./sidebar"
 import { BUSINESS_UNITS, ATTENTION_ITEMS } from "@/lib/mock-data"
+import { ROLES, ROLE_META, initials } from "@/lib/account-data"
 import { cn } from "@/lib/utils"
 
 const UNIT_OPTIONS = ["All", ...BUSINESS_UNITS] as const
 
 export function Topbar() {
   const { unit, setUnit, openAsk, ownerView, setOwnerView } = useApp()
+  const { currentUser, signOut, setRole } = useAuth()
+  const isAdmin = currentUser.role === "Admin"
   const router = useRouter()
+
+  function handleSignOut() {
+    signOut()
+    router.push("/")
+  }
   const [search, setSearch] = useState("")
   const searchRef = useRef<HTMLInputElement>(null)
 
@@ -183,6 +206,37 @@ export function Topbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Demo role switcher — lets a reviewer see the UI change per role */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="outline" size="sm" className="hidden gap-1.5 sm:flex" />
+            }
+          >
+            <UserCog className="size-3.5 text-muted-foreground" />
+            <span className="text-muted-foreground">Role:</span>
+            <span className="font-medium">{currentUser.role}</span>
+            <ChevronDown className="size-3.5 text-muted-foreground" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>Demo role — preview access levels</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {ROLES.map((r) => (
+              <DropdownMenuItem
+                key={r}
+                onClick={() => setRole(r)}
+                className="flex-col items-start gap-0.5"
+              >
+                <span className="flex w-full items-center justify-between gap-2">
+                  <span className="font-medium text-foreground">{r}</span>
+                  <Check className={cn("size-4", currentUser.role === r ? "opacity-100" : "opacity-0")} />
+                </span>
+                <span className="text-xs text-muted-foreground">{ROLE_META[r].blurb}</span>
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -193,20 +247,38 @@ export function Topbar() {
             }
           >
             <Avatar className="size-9">
+              {currentUser.avatarUrl && (
+                <AvatarImage src={currentUser.avatarUrl} alt="" />
+              )}
               <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
-                JC
+                {initials(currentUser.name)}
               </AvatarFallback>
             </Avatar>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuLabel>
-              <div className="font-medium text-foreground">Jordan Cole</div>
-              <div className="text-xs font-normal text-muted-foreground">VP, Operations</div>
+              <div className="font-medium text-foreground">{currentUser.name}</div>
+              <div className="text-xs font-normal text-muted-foreground">{currentUser.title}</div>
+              <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-medium text-secondary-foreground">
+                <ShieldCheck className="size-3" /> {currentUser.role}
+              </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
-            <DropdownMenuItem>Preferences</DropdownMenuItem>
-            <DropdownMenuItem>Sign out</DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/profile" />}>
+              <User className="size-4" /> Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem render={<Link href="/settings" />}>
+              <Settings className="size-4" /> Account settings
+            </DropdownMenuItem>
+            {isAdmin && (
+              <DropdownMenuItem render={<Link href="/admin" />}>
+                <ShieldCheck className="size-4" /> Admin console
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+              <LogOut className="size-4" /> Sign out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -1,13 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, ChevronUp, GripVertical, X } from "lucide-react"
+import { BarChart3, Building2, ChevronDown, ChevronUp, GripVertical, X } from "lucide-react"
 import { COMPANY_STATS } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
 import {
+  CLIENT_ONLY_SECTIONS,
   SECTION_LABELS,
   SECTION_ORDER,
-  selectedProjects,
+  blockId,
+  blockTitle,
+  type BlockRef,
   type PortfolioConfig,
   type SectionKey,
 } from "./config"
@@ -76,15 +79,16 @@ function Toggle({
 export function CuratePanel({
   config,
   update,
-  reorderProjects,
-  removeProject,
+  reorderBlock,
+  removeBlock,
 }: {
   config: PortfolioConfig
   update: (patch: Partial<PortfolioConfig>) => void
-  reorderProjects: (from: number, to: number) => void
-  removeProject: (id: string) => void
+  reorderBlock: (from: number, to: number) => void
+  removeBlock: (ref: BlockRef) => void
 }) {
-  const projects = selectedProjects(config)
+  const isClient = config.kind === "client"
+  const blocks = config.blocks
   const [dragIndex, setDragIndex] = useState<number | null>(null)
 
   function toggleSection(key: SectionKey) {
@@ -97,6 +101,11 @@ export function CuratePanel({
     update({ enabledStats: next })
   }
 
+  // Internal decks don't show the client-only summary sections.
+  const sectionKeys = SECTION_ORDER.filter(
+    (k) => isClient || !CLIENT_ONLY_SECTIONS.includes(k),
+  )
+
   return (
     <div className="flex flex-col gap-7">
       {/* Cover content */}
@@ -107,7 +116,7 @@ export function CuratePanel({
             className={inputClass}
             value={config.title}
             onChange={(e) => update({ title: e.target.value })}
-            placeholder="Capabilities Portfolio"
+            placeholder={isClient ? "Capabilities Portfolio" : "Portfolio Performance Review"}
             maxLength={80}
           />
         </Field>
@@ -116,107 +125,126 @@ export function CuratePanel({
             className={cn(inputClass, "min-h-[72px] resize-y")}
             value={config.intro}
             onChange={(e) => update({ intro: e.target.value })}
-            placeholder="A short, confident statement that frames the portfolio."
+            placeholder="A short, confident statement that frames the deck."
             maxLength={260}
           />
         </Field>
-        <Field label="Prepared for" hint="optional">
-          <input
-            className={inputClass}
-            value={config.preparedFor}
-            onChange={(e) => update({ preparedFor: e.target.value })}
-            placeholder="e.g. Federal agency or client name"
-            maxLength={60}
-          />
-        </Field>
-      </section>
-
-      {/* Highlight stats */}
-      <section className="flex flex-col gap-3">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">Highlight stats</h3>
-          <p className="text-xs text-muted-foreground">Company figures shown on the cover.</p>
-        </div>
-        <div className="grid grid-cols-1 gap-2">
-          {COMPANY_STATS.map((s, i) => (
-            <Toggle
-              key={s.label}
-              checked={config.enabledStats[i]}
-              onChange={() => toggleStat(i)}
-              label={`${s.value} — ${s.label}`}
+        {isClient ? (
+          <Field label="Prepared for" hint="optional">
+            <input
+              className={inputClass}
+              value={config.preparedFor}
+              onChange={(e) => update({ preparedFor: e.target.value })}
+              placeholder="e.g. Federal agency or client name"
+              maxLength={60}
             />
-          ))}
-        </div>
+          </Field>
+        ) : null}
       </section>
 
-      {/* Project order */}
+      {/* Highlight stats — cover figures (client decks only) */}
+      {isClient ? (
+        <section className="flex flex-col gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Highlight stats</h3>
+            <p className="text-xs text-muted-foreground">Company figures shown on the cover.</p>
+          </div>
+          <div className="grid grid-cols-1 gap-2">
+            {COMPANY_STATS.map((s, i) => (
+              <Toggle
+                key={s.label}
+                checked={config.enabledStats[i]}
+                onChange={() => toggleStat(i)}
+                label={`${s.value} — ${s.label}`}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Block order — mixed charts + showcases */}
       <section className="flex flex-col gap-3">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Project order</h3>
+          <h3 className="text-sm font-semibold text-foreground">Slide order</h3>
           <p className="text-xs text-muted-foreground">Drag to reorder, or use the arrows.</p>
         </div>
-        {projects.length === 0 ? (
+        {blocks.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border py-6 text-center text-xs text-muted-foreground">
-            No projects selected yet.
+            Nothing selected yet — go back to add charts or projects.
           </div>
         ) : (
           <ul className="flex flex-col gap-2">
-            {projects.map((p, i) => (
-              <li
-                key={p.id}
-                draggable
-                onDragStart={() => setDragIndex(i)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => {
-                  if (dragIndex !== null && dragIndex !== i) reorderProjects(dragIndex, i)
-                  setDragIndex(null)
-                }}
-                onDragEnd={() => setDragIndex(null)}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg border border-border bg-card p-2 text-sm transition-shadow",
-                  dragIndex === i && "opacity-60 shadow-md",
-                )}
-              >
-                <GripVertical
-                  className="size-4 shrink-0 cursor-grab text-muted-foreground"
-                  aria-hidden
-                />
-                <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary tabular-nums">
-                  {i + 1}
-                </span>
-                <span className="min-w-0 flex-1 truncate font-medium text-foreground">
-                  {p.name}
-                </span>
-                <div className="flex shrink-0 items-center">
-                  <button
-                    type="button"
-                    onClick={() => reorderProjects(i, i - 1)}
-                    disabled={i === 0}
-                    aria-label={`Move ${p.name} up`}
-                    className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
-                  >
-                    <ChevronUp className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => reorderProjects(i, i + 1)}
-                    disabled={i === projects.length - 1}
-                    aria-label={`Move ${p.name} down`}
-                    className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
-                  >
-                    <ChevronDown className="size-4" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeProject(p.id)}
-                    aria-label={`Remove ${p.name}`}
-                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                  >
-                    <X className="size-4" />
-                  </button>
-                </div>
-              </li>
-            ))}
+            {blocks.map((b, i) => {
+              const id = blockId(b)
+              const title = blockTitle(b)
+              const Icon = b.kind === "metric" ? BarChart3 : Building2
+              return (
+                <li
+                  key={id}
+                  draggable
+                  onDragStart={() => setDragIndex(i)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => {
+                    if (dragIndex !== null && dragIndex !== i) reorderBlock(dragIndex, i)
+                    setDragIndex(null)
+                  }}
+                  onDragEnd={() => setDragIndex(null)}
+                  className={cn(
+                    "flex items-center gap-2 rounded-lg border border-border bg-card p-2 text-sm transition-shadow",
+                    dragIndex === i && "opacity-60 shadow-md",
+                  )}
+                >
+                  <GripVertical
+                    className="size-4 shrink-0 cursor-grab text-muted-foreground"
+                    aria-hidden
+                  />
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary tabular-nums">
+                    {i + 1}
+                  </span>
+                  <Icon
+                    className={cn(
+                      "size-4 shrink-0",
+                      b.kind === "metric" ? "text-chart-1" : "text-muted-foreground",
+                    )}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1 truncate font-medium text-foreground">
+                    {title}
+                  </span>
+                  <span className="sr-only">
+                    {b.kind === "metric" ? "Chart" : "Project showcase"}
+                  </span>
+                  <div className="flex shrink-0 items-center">
+                    <button
+                      type="button"
+                      onClick={() => reorderBlock(i, i - 1)}
+                      disabled={i === 0}
+                      aria-label={`Move ${title} up`}
+                      className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                    >
+                      <ChevronUp className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => reorderBlock(i, i + 1)}
+                      disabled={i === blocks.length - 1}
+                      aria-label={`Move ${title} down`}
+                      className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+                    >
+                      <ChevronDown className="size-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeBlock(b)}
+                      aria-label={`Remove ${title}`}
+                      className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <X className="size-4" />
+                    </button>
+                  </div>
+                </li>
+              )
+            })}
           </ul>
         )}
       </section>
@@ -225,10 +253,10 @@ export function CuratePanel({
       <section className="flex flex-col gap-3">
         <div>
           <h3 className="text-sm font-semibold text-foreground">Sections</h3>
-          <p className="text-xs text-muted-foreground">Toggle what appears in the portfolio.</p>
+          <p className="text-xs text-muted-foreground">Toggle the framing slides.</p>
         </div>
         <div className="grid grid-cols-1 gap-2">
-          {SECTION_ORDER.map((key) => (
+          {sectionKeys.map((key) => (
             <Toggle
               key={key}
               checked={config.sections[key]}

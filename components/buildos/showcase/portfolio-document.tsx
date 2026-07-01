@@ -7,10 +7,20 @@ import {
   aggregateShowcase,
   formatCurrency,
   formatNumber,
+  type PerfMetric,
   type ShowcaseProject,
 } from "@/lib/mock-data"
 import { cn } from "@/lib/utils"
-import { selectedProjects, type PortfolioConfig } from "./config"
+import {
+  selectedMetrics,
+  selectedProjects,
+  type BlockRef,
+  type PortfolioConfig,
+} from "./config"
+import { MetricMainChart } from "@/components/buildos/reporting/perf-charts"
+
+/** The display register: editorial (Fraunces) for client decks, enterprise sans for internal. */
+const headingFont = (editorial: boolean) => (editorial ? "font-display" : "font-heading")
 
 /* ---------------------------------------------------------------------------
  * Shared pieces
@@ -196,10 +206,12 @@ function ProjectShowcaseSection({
   project,
   index,
   total,
+  editorial = true,
 }: {
   project: ShowcaseProject
   index: number
   total: number
+  editorial?: boolean
 }) {
   return (
     <section className="flex flex-col bg-card px-10 py-12 text-card-foreground sm:px-14 sm:py-14">
@@ -210,7 +222,12 @@ function ProjectShowcaseSection({
         </span>
       </div>
 
-      <h2 className="mt-3 max-w-3xl font-display text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl">
+      <h2
+        className={cn(
+          "mt-3 max-w-3xl text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl",
+          headingFont(editorial),
+        )}
+      >
         {project.name}
       </h2>
 
@@ -397,39 +414,224 @@ function ClosingSection({ config }: { config: PortfolioConfig }) {
 }
 
 /* ---------------------------------------------------------------------------
+ * Internal leadership deck sections
+ * ------------------------------------------------------------------------- */
+
+function deltaToneClasses(intent: PerfMetric["deltaIntent"]): string {
+  switch (intent) {
+    case "good":
+      return "bg-success-muted text-success-strong"
+    case "warn":
+      return "bg-warning-muted text-warning-strong"
+    case "bad":
+      return "bg-danger-muted text-danger-strong"
+    default:
+      return "bg-muted text-muted-foreground"
+  }
+}
+
+function InternalCoverSection({ config }: { config: PortfolioConfig }) {
+  const metrics = selectedMetrics(config)
+  return (
+    <section className="flex min-h-[640px] flex-col justify-between bg-primary px-10 py-12 text-primary-foreground sm:px-14 sm:py-14">
+      <div className="flex items-start justify-between">
+        <ShowcaseLogo tone="light" />
+        <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90">
+          Internal · Leadership
+        </span>
+      </div>
+
+      <div>
+        <Eyebrow light>Performance Review</Eyebrow>
+        <h1 className="mt-4 max-w-3xl font-heading text-5xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl">
+          {config.title || "Portfolio Performance Review"}
+        </h1>
+        {config.intro.trim() ? (
+          <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/80 text-pretty">
+            {config.intro}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-8 gap-y-6 border-t border-white/15 pt-8 sm:grid-cols-4">
+        {metrics.slice(0, 4).map((m) => (
+          <div key={m.key}>
+            <div className="font-heading text-3xl font-semibold leading-none tracking-tight">
+              {m.value}
+            </div>
+            <div className="mt-2 text-xs text-white/70 text-pretty">{m.label}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function MetricSlideSection({
+  metric,
+  index,
+  total,
+  editorial = false,
+}: {
+  metric: PerfMetric
+  index: number
+  total: number
+  editorial?: boolean
+}) {
+  return (
+    <section className="flex flex-col bg-card px-10 py-12 text-card-foreground sm:px-14 sm:py-14">
+      <div className="flex items-center justify-between">
+        <Eyebrow>Performance Metric</Eyebrow>
+        <span className="text-xs font-medium text-muted-foreground tabular-nums">
+          {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+        </span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+        <h2
+          className={cn(
+            "max-w-2xl text-4xl font-semibold leading-[1.08] tracking-tight text-balance sm:text-5xl",
+            headingFont(editorial),
+          )}
+        >
+          {metric.label}
+        </h2>
+        <div className="flex items-center gap-3">
+          <span
+            className={cn(
+              "text-4xl font-semibold leading-none tracking-tight text-foreground sm:text-5xl",
+              headingFont(editorial),
+            )}
+          >
+            {metric.value}
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-medium",
+              deltaToneClasses(metric.deltaIntent),
+            )}
+          >
+            {metric.delta}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-8 rounded-xl border border-border bg-background/40 p-4">
+        <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Trailing 12 months
+        </div>
+        <MetricMainChart metric={metric} />
+      </div>
+
+      <p className="mt-8 max-w-3xl border-t border-border pt-7 text-[15px] leading-relaxed text-foreground/85 text-pretty">
+        {metric.narrative}
+      </p>
+    </section>
+  )
+}
+
+function InternalClosingSection() {
+  return (
+    <section className="flex min-h-[420px] flex-col justify-between bg-primary px-10 py-14 text-primary-foreground sm:px-14">
+      <ShowcaseLogo tone="light" />
+      <div>
+        <Eyebrow light>Discussion</Eyebrow>
+        <p className="mt-4 max-w-2xl font-heading text-3xl font-semibold leading-[1.15] tracking-tight text-balance sm:text-4xl">
+          Questions, priorities, and where to lean in next quarter.
+        </p>
+        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/75 text-pretty">
+          Prepared from live BuildOS operating data for internal leadership review. Not for external
+          distribution.
+        </p>
+      </div>
+    </section>
+  )
+}
+
+/* ---------------------------------------------------------------------------
  * Slide builder + document
  * ------------------------------------------------------------------------- */
 
 export type Slide = { key: string; label: string; node: ReactNode }
 
 export function buildSlides(config: PortfolioConfig): Slide[] {
+  const editorial = config.kind === "client"
   const projects = selectedProjects(config)
+  const metrics = selectedMetrics(config)
   const slides: Slide[] = []
+
+  // Cover — register-specific.
   if (config.sections.cover) {
-    slides.push({ key: "cover", label: "Cover", node: <CoverSection config={config} /> })
-  }
-  if (config.sections.showcases) {
-    projects.forEach((p, i) => {
-      slides.push({
-        key: `project-${p.id}`,
-        label: p.name,
-        node: <ProjectShowcaseSection project={p} index={i} total={projects.length} />,
-      })
+    slides.push({
+      key: "cover",
+      label: "Cover",
+      node: editorial ? (
+        <CoverSection config={config} />
+      ) : (
+        <InternalCoverSection config={config} />
+      ),
     })
   }
-  if (config.sections.capabilities) {
+
+  // Body — selected blocks in their curated order (charts + showcases mixed).
+  // Numbering is kept per-kind so the "01 / 0N" counters stay meaningful.
+  config.blocks.forEach((ref: BlockRef) => {
+    if (ref.kind === "project") {
+      const project = projects.find((p) => p.id === ref.id)
+      if (!project) return
+      const i = projects.indexOf(project)
+      slides.push({
+        key: `project-${project.id}`,
+        label: project.name,
+        node: (
+          <ProjectShowcaseSection
+            project={project}
+            index={i}
+            total={projects.length}
+            editorial={editorial}
+          />
+        ),
+      })
+    } else {
+      const metric = metrics.find((m) => m.key === ref.key)
+      if (!metric) return
+      const i = metrics.indexOf(metric)
+      slides.push({
+        key: `metric-${metric.key}`,
+        label: metric.label,
+        node: (
+          <MetricSlideSection
+            metric={metric}
+            index={i}
+            total={metrics.length}
+            editorial={editorial}
+          />
+        ),
+      })
+    }
+  })
+
+  // Client-only aggregate summary sections, derived from selected projects.
+  if (editorial && config.sections.capabilities && projects.length > 0) {
     slides.push({
       key: "capabilities",
       label: "Capabilities",
       node: <CapabilitiesSection config={config} />,
     })
   }
-  if (config.sections.safety) {
+  if (editorial && config.sections.safety && projects.length > 0) {
     slides.push({ key: "safety", label: "Safety", node: <SafetySection config={config} /> })
   }
+
+  // Closing — register-specific.
   if (config.sections.closing) {
-    slides.push({ key: "closing", label: "Closing", node: <ClosingSection config={config} /> })
+    slides.push({
+      key: "closing",
+      label: "Closing",
+      node: editorial ? <ClosingSection config={config} /> : <InternalClosingSection />,
+    })
   }
+
   return slides
 }
 
