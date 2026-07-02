@@ -132,8 +132,8 @@
   /* Squared corners (~2px) */
   --radius: 0.125rem;
 
-  /* Sidebar — deep maroon so the whole shell reads maroon-forward */
-  --sidebar: oklch(0.24 0.055 10);
+  /* Sidebar — deep Caddell maroon (#4E1526) so the left rail reads maroon */
+  --sidebar: oklch(0.285 0.088 6);
   --sidebar-foreground: oklch(0.84 0.015 40);
   --sidebar-primary: oklch(0.72 0.13 15);
   --sidebar-primary-foreground: oklch(0.2 0.05 10);

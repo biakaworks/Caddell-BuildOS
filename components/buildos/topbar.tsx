@@ -127,7 +127,8 @@ export function Topbar() {
         {/* Ask BuildOS */}
         <Button
           onClick={() => openAsk()}
-          className="gap-1.5 bg-primary shadow-sm"
+          variant="cta"
+          className="gap-1.5 shadow-sm"
           size="sm"
         >
           <Sparkles className="size-4" />

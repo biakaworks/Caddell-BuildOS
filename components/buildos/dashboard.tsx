@@ -321,7 +321,13 @@ export function PredictiveInsights() {
 export function PromoStrip() {
   const { openAsk } = useApp()
   return (
-    <Card className="flex flex-col items-start justify-between gap-4 border-primary/20 bg-primary/[0.04] p-5 sm:flex-row sm:items-center">
+    <Card className="relative flex flex-col items-start justify-between gap-4 overflow-hidden border-t-[3px] border-t-gold border-primary/20 bg-primary/[0.04] p-5 pl-7 sm:flex-row sm:items-center">
+      {/* Gold ribbon left edge with a chevron point — echo of the Caddell gold ribbon */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-y-0 left-0 w-3 bg-gold"
+        style={{ clipPath: "polygon(0 0, 100% 0, 40% 50%, 100% 100%, 0 100%)" }}
+      />
       <div>
         <h3 className="font-heading text-sm font-semibold text-foreground">
           Start a pursuit from history, not a blank page
@@ -330,7 +336,11 @@ export function PromoStrip() {
           Ask BuildOS to surface comparable past work, win themes, and subcontractor performance.
         </p>
       </div>
-      <Button onClick={() => openAsk("Draft win themes for the Coastal Data Center pursuit")} className="shrink-0">
+      <Button
+        onClick={() => openAsk("Draft win themes for the Coastal Data Center pursuit")}
+        variant="cta"
+        className="shrink-0"
+      >
         Ask BuildOS <ArrowRight className="size-4" />
       </Button>
     </Card>
