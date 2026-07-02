@@ -8,10 +8,17 @@ import { SidebarNav } from "./sidebar"
 import { Topbar } from "./topbar"
 import { AskPanel } from "./ask-panel"
 import { OwnerPortal } from "./owner-portal"
+import { CaddellSplash } from "./caddell-mark"
 
 function ShellInner({ children }: { children: React.ReactNode }) {
   const { ownerView } = useApp()
-  const { signedIn } = useAuth()
+  const { signedIn, hydrated } = useAuth()
+
+  // While the session rehydrates from storage, show a branded splash so the
+  // first paint is unmistakably Caddell (and avoids a sign-in flash on refresh).
+  if (!hydrated) {
+    return <CaddellSplash />
+  }
 
   // Signed-out guard: the entire app is replaced by the auth flow. Any route
   // rendered while signed out shows Sign in, satisfying the mock redirect.

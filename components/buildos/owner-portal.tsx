@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import {
-  HardHat,
   LogOut,
   ShieldCheck,
   CalendarClock,
@@ -16,6 +15,7 @@ import { cn } from "@/lib/utils"
 import { PROJECTS, type Project } from "@/lib/mock-data"
 import { useApp } from "./app-context"
 import { StatusPill, Meter } from "./ui"
+import { CaddellCMark } from "./caddell-mark"
 
 // Owners only see a curated subset of their own projects.
 const OWNER_PROJECTS = PROJECTS.slice(0, 3)
@@ -42,9 +42,7 @@ export function OwnerPortal() {
       {/* Distinct external-facing header — clearly not the internal app */}
       <header className="sticky top-0 z-30 border-b border-border bg-card">
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4 sm:px-6">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-            <HardHat className="size-5" />
-          </div>
+          <CaddellCMark className="size-9" />
           <div className="leading-tight">
             <div className="font-heading text-sm font-semibold tracking-tight text-foreground">
               Caddell · Owner Portal
