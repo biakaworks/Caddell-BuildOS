@@ -1,10 +1,12 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
+import { Open_Sans, Geist_Mono, Oswald, Fraunces } from 'next/font/google'
 import { AppShell } from '@/components/buildos/app-shell'
 import './globals.css'
 
-const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
+// Open Sans — UI / body. Oswald — bold condensed sans for large headings.
+const openSans = Open_Sans({ variable: '--font-open-sans', subsets: ['latin'] })
+const oswald = Oswald({ variable: '--font-oswald', subsets: ['latin'] })
 const geistMono = Geist_Mono({
   variable: '--font-geist-mono',
   subsets: ['latin'],
@@ -42,7 +44,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#2b3a55',
+  themeColor: '#691C32',
 }
 
 export default function RootLayout({
@@ -53,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`light ${geistSans.variable} ${geistMono.variable} ${fraunces.variable}`}
+      className={`light ${openSans.variable} ${oswald.variable} ${geistMono.variable} ${fraunces.variable}`}
     >
       <body className="bg-background font-sans antialiased">
         <AppShell>{children}</AppShell>

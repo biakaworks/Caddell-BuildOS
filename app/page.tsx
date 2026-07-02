@@ -24,7 +24,8 @@ export default function DashboardPage() {
             : `Portfolio health — filtered to the ${unit} business unit.`
         }
       >
-        <span className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
           Updated just now
         </span>
       </PageHeader>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { HardHat, Loader2, Lock, Mail, ShieldCheck, KeyRound, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Loader2, Lock, Mail, ShieldCheck, KeyRound, ArrowLeft, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "./auth-context"
@@ -23,16 +23,17 @@ export function AuthFlow() {
     <div className="flex min-h-screen flex-col bg-background lg:flex-row">
       {/* Brand panel */}
       <aside className="relative flex shrink-0 flex-col justify-between bg-sidebar px-8 py-10 text-sidebar-foreground lg:w-[42%] lg:px-12 lg:py-14">
-        <div className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-            <HardHat className="size-5" />
-          </div>
-          <div className="leading-tight">
-            <div className="font-heading text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
-              BuildOS
-            </div>
-            <div className="text-[11px] text-sidebar-foreground/70">Caddell Construction</div>
-          </div>
+        <div className="flex items-center gap-3">
+          {/* White Caddell wordmark on the dark hero — a bit larger here */}
+          <img
+            src="/caddell-logo-white.svg"
+            alt="Caddell Construction"
+            className="h-9 w-auto shrink-0"
+          />
+          <span className="h-8 w-px shrink-0 bg-sidebar-border" aria-hidden="true" />
+          <span className="font-heading text-xl font-semibold tracking-tight text-sidebar-accent-foreground">
+            BuildOS
+          </span>
         </div>
 
         <div className="hidden max-w-md lg:block">
@@ -175,7 +176,7 @@ function SignInScreen({
           </button>
         </div>
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading !== null}>
+        <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading !== null}>
           {loading === "password" ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Signing in…
@@ -281,7 +282,7 @@ function MfaScreen({
           </p>
         )}
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Verifying…
@@ -373,7 +374,7 @@ function ForgotScreen({
           </p>
         )}
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Sending…
@@ -415,7 +416,7 @@ function ResetSentScreen({ headingRef, onBack }: ScreenProps & { onBack: () => v
         If an account exists for that email, a password reset link is on its way. The link expires in
         30 minutes.
       </p>
-      <Button size="lg" className="mt-6 w-full" onClick={onBack}>
+      <Button variant="cta" size="lg" className="mt-6 w-full" onClick={onBack}>
         Back to sign in
       </Button>
     </div>

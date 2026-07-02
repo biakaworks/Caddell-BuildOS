@@ -118,7 +118,7 @@ export function PursuitsView() {
               className={cn(
                 "rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
                 stageFilter === s
-                  ? "bg-primary text-primary-foreground"
+                  ? "bg-gold text-gold-foreground"
                   : "bg-card text-muted-foreground ring-1 ring-border hover:text-foreground",
               )}
             >
