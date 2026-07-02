@@ -175,7 +175,7 @@ function SignInScreen({
           </button>
         </div>
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading !== null}>
+        <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading !== null}>
           {loading === "password" ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Signing in…
@@ -281,7 +281,7 @@ function MfaScreen({
           </p>
         )}
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Verifying…
@@ -373,7 +373,7 @@ function ForgotScreen({
           </p>
         )}
 
-        <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        <Button type="submit" variant="cta" size="lg" className="w-full" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="size-4 animate-spin" /> Sending…
@@ -415,7 +415,7 @@ function ResetSentScreen({ headingRef, onBack }: ScreenProps & { onBack: () => v
         If an account exists for that email, a password reset link is on its way. The link expires in
         30 minutes.
       </p>
-      <Button size="lg" className="mt-6 w-full" onClick={onBack}>
+      <Button variant="cta" size="lg" className="mt-6 w-full" onClick={onBack}>
         Back to sign in
       </Button>
     </div>
