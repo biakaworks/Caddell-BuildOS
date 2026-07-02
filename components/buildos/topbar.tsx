@@ -87,6 +87,15 @@ export function Topbar() {
         </SheetContent>
       </Sheet>
 
+      {/* Maroon Caddell wordmark for the light top bar (mobile — the dark
+          sidebar mark is hidden behind the hamburger at this breakpoint) */}
+      <Link href="/" className="flex items-center gap-2 lg:hidden" aria-label="Caddell BuildOS home">
+        <img src="/caddell-logo.svg" alt="Caddell Construction" className="h-6 w-auto shrink-0" />
+        <span className="font-heading text-base font-semibold tracking-tight text-foreground">
+          BuildOS
+        </span>
+      </Link>
+
       {/* Global search */}
       <form onSubmit={submitSearch} className="relative hidden max-w-md flex-1 items-center md:flex">
         <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />

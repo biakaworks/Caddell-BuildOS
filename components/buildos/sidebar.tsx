@@ -9,7 +9,6 @@ import {
   Building2,
   BookOpen,
   BarChart3,
-  HardHat,
   CircleDot,
   Handshake,
   Plug,
@@ -75,15 +74,16 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center gap-2.5 px-5">
-        <div className="flex size-9 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-          <HardHat className="size-5" />
-        </div>
-        <div className="leading-tight">
-          <div className="font-heading text-sm font-semibold tracking-tight text-sidebar-accent-foreground">
-            BuildOS
-          </div>
-          <div className="text-[11px] text-sidebar-foreground/70">Caddell Construction</div>
-        </div>
+        {/* White Caddell wordmark on the dark maroon rail */}
+        <img
+          src="/caddell-logo-white.svg"
+          alt="Caddell Construction"
+          className="h-6 w-auto shrink-0"
+        />
+        <span className="h-6 w-px shrink-0 bg-sidebar-border" aria-hidden="true" />
+        <span className="font-heading text-base font-semibold tracking-tight text-sidebar-accent-foreground">
+          BuildOS
+        </span>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 py-2" aria-label="Primary">
