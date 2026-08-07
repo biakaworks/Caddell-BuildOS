@@ -1,5 +1,5 @@
-import { AccountSettingsView } from "@/components/buildos/account/account-settings"
+import { SettingsView } from "@/components/buildos/settings"
 
 export default function SettingsPage() {
-  return <AccountSettingsView />
+  return <SettingsView />
 }

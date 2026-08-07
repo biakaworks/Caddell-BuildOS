@@ -1,5 +1,5 @@
-import { AdminConsole } from "@/components/buildos/account/admin/admin-console"
+import { redirect } from "next/navigation"
 
 export default function AdminPage() {
-  return <AdminConsole />
+  redirect("/settings")
 }

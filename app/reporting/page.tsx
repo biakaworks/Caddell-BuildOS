@@ -1,5 +1,5 @@
-import { ReportingView } from "@/components/buildos/reporting"
+import { redirect } from "next/navigation"
 
 export default function ReportingPage() {
-  return <ReportingView />
+  redirect("/")
 }

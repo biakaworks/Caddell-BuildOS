@@ -1,5 +1,5 @@
-import { TradePartnersView } from "@/components/buildos/trade-partners"
+import { redirect } from "next/navigation"
 
 export default function TradePartnersPage() {
-  return <TradePartnersView />
+  redirect("/contacts")
 }

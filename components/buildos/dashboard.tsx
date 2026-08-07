@@ -1,333 +1,340 @@
 "use client"
 
 import Link from "next/link"
-import { AlertTriangle, ChevronRight, Clock } from "lucide-react"
+import { AlertTriangle, TrendingUp, Package, CalendarRange, ClipboardList, Zap } from "lucide-react"
+import { PROJECTS, FAB_ITEMS, INSTALL_EVENTS, BIDS, OPPORTUNITIES, TICKETS, formatCurrency } from "@/lib/data/fixtures"
+import { PageContainer, StatusPill, healthTone, Meter, StatTile, SectionHeading, TrendDelta } from "./ui"
 import { cn } from "@/lib/utils"
-import {
-  PROJECTS,
-  ACTIVE_PROJECTS,
-  SHUTDOWN_PROJECTS,
-  ACTIVITY,
-  formatCurrency,
-} from "@/lib/data/fixtures"
-import { StatTile, StatusPill, SectionHeading, healthTone, statusToTone, Meter, PhaseTrack } from "./ui"
 
-// ─── Stat Row ─────────────────────────────────────────────────────────────
-export function PulseStatRow() {
-  const active = ACTIVE_PROJECTS.length
-  const onSchedule = ACTIVE_PROJECTS.filter((p) => p.healthStatus === "On Schedule").length
-  const atRisk = ACTIVE_PROJECTS.filter((p) => p.healthStatus === "At Risk" || p.healthStatus === "Late").length
+export function Dashboard() {
+  // ── Derived KPIs ──────────────────────────────────────────────────────────
+  const atRisk    = PROJECTS.filter((p) => p.healthStatus === "At Risk").length
+  const late      = PROJECTS.filter((p) => p.healthStatus === "Late").length
+  const activeJobs= PROJECTS.filter((p) => !["Estimate"].includes(p.phase)).length
+  const totalCV   = PROJECTS.reduce((s, p) => s + p.contractValue, 0)
+  const blocked   = FAB_ITEMS.filter((i) => i.blocked)
+  const openTickets = TICKETS.filter((t) => t.status !== "Resolved").length
+  const crewConflicts = INSTALL_EVENTS.filter((e) => e.conflictWith).length / 2
 
-  // installs "this week" = events with dates touching Aug 7–14 2026
-  const installsThisWeek = PROJECTS.filter(
-    (p) =>
-      (p.phase === "Install" || p.phase === "Fabrication") &&
-      new Date(p.installWindowStart) <= new Date("2026-08-14") &&
-      new Date(p.installWindowEnd) >= new Date("2026-08-07")
-  ).length
+  // Summer shutdown jobs — hard-deadline constraint
+  const summerJobs = PROJECTS.filter((p) => p.hardDeadlineWindow)
 
-  return (
-    <div className="grid grid-cols-2 gap-px bg-border lg:grid-cols-4">
-      <StatTile label="Active Jobs" value={active} tone="neutral" />
-      <StatTile label="On Schedule" value={onSchedule} tone="success" />
-      <StatTile
-        label="At Risk / Late"
-        value={atRisk}
-        tone={atRisk > 0 ? "warning" : "success"}
-      />
-      <StatTile label="Installs This Week" value={installsThisWeek} tone="info" />
-    </div>
-  )
-}
-
-// ─── Schedule Pressure Strip ──────────────────────────────────────────────
-const SHUTDOWN_START = new Date("2027-06-01")
-const SHUTDOWN_END = new Date("2027-08-07")
-const WINDOW_DAYS = (SHUTDOWN_END.getTime() - SHUTDOWN_START.getTime()) / 86_400_000
-
-function daysFrom(dateStr: string) {
-  const d = new Date(dateStr)
-  return Math.round((d.getTime() - SHUTDOWN_START.getTime()) / 86_400_000)
-}
-
-export function SchedulePressureStrip() {
-  const edProjects = PROJECTS.filter(
-    (p) =>
-      p.sector === "Education" &&
-      new Date(p.installWindowEnd) > SHUTDOWN_START &&
-      new Date(p.installWindowStart) < SHUTDOWN_END
-  )
-
-  return (
-    <div className="border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <SectionHeading
-          title="K-12 + Higher Ed — Summer 2027 Shutdown Window"
-          description="June 1 – Aug 7, 2027 · School-year constraint"
-        />
-        <span className="text-[11px] text-muted-foreground">
-          {edProjects.length} education jobs in window
-        </span>
-      </div>
-      <div className="px-4 py-5">
-        {/* Window label */}
-        <div className="relative mb-1 h-5">
-          <div
-            className="absolute inset-y-0 flex items-center justify-center bg-primary/10 border-x border-primary/30"
-            style={{ left: "0%", width: "100%" }}
-          >
-            <span className="text-[10px] text-primary/70 tracking-widest uppercase">
-              SUMMER SHUTDOWN WINDOW
-            </span>
-          </div>
-        </div>
-
-        {/* Timeline rows */}
-        <div className="space-y-1">
-          {edProjects.map((p) => {
-            const startOff = Math.max(0, daysFrom(p.installWindowStart))
-            const endOff = Math.min(WINDOW_DAYS, daysFrom(p.installWindowEnd))
-            const leftPct = (startOff / WINDOW_DAYS) * 100
-            const widthPct = Math.max(2, ((endOff - startOff) / WINDOW_DAYS) * 100)
-            const tone = healthTone(p.healthStatus)
-            const barColor =
-              tone === "success"
-                ? "bg-success"
-                : tone === "warning"
-                ? "bg-warning"
-                : "bg-danger"
-
-            return (
-              <div key={p.id} className="flex items-center gap-3">
-                <div className="w-44 shrink-0 min-w-0">
-                  <Link
-                    href={`/projects/${p.id}`}
-                    className="block truncate text-[11px] text-foreground hover:text-primary"
-                  >
-                    {p.name}
-                  </Link>
-                  <span className="text-[10px] text-muted-foreground">
-                    {p.city}, {p.state}
-                  </span>
-                </div>
-                <div className="relative flex-1 h-5 bg-muted">
-                  <div
-                    className={cn("absolute inset-y-0 h-5", barColor)}
-                    style={{
-                      left: `${leftPct}%`,
-                      width: `${widthPct}%`,
-                    }}
-                  />
-                  {p.healthStatus !== "On Schedule" && (
-                    <div
-                      className="absolute inset-y-0 flex items-center"
-                      style={{ left: `${leftPct + widthPct / 2}%` }}
-                    >
-                      <AlertTriangle className="size-3 text-warning" />
-                    </div>
-                  )}
-                </div>
-                <StatusPill tone={tone} className="shrink-0">
-                  {p.healthStatus}
-                </StatusPill>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* Axis labels */}
-        <div className="mt-2 flex justify-between text-[10px] text-muted-foreground/60">
-          <span>Jun 1, 2027</span>
-          <span>Jul 4, 2027</span>
-          <span>Aug 7, 2027</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Exceptions Panel ─────────────────────────────────────────────────────
-const EXCEPTIONS = [
-  {
-    id: "exc-1",
-    projectId: "bentonville-hs",
-    project: "Bentonville High School",
-    message: "IGU #B-214 failed seal inspection — re-order placed (PO #B-214-R), 14-day vendor lead",
-    nextAction: "Confirm delivery date with Trulite Glass rep — call by Aug 9",
-    severity: "danger" as const,
-    age: "Today, 9:00 am",
-  },
-  {
-    id: "exc-2",
-    projectId: "joplin-hs",
-    project: "Joplin High School",
-    message: "Extrusion order (PO #4417) delayed 3 weeks — fabrication plan at risk",
-    nextAction: "Source alternate extrusion supplier or compress Assemble stage",
-    severity: "warning" as const,
-    age: "2 days ago",
-  },
-  {
-    id: "exc-3",
-    projectId: "millennium-fitness",
-    project: "Millennium Family Fitness",
-    message: "Punch list — 6 open items. Lobby entrance sealant and hardware punch delayed by GC access",
-    nextAction: "Coordinate site access with Tom Ricker (Wilder) — target Aug 12",
-    severity: "warning" as const,
-    age: "Yesterday",
-  },
-  {
-    id: "exc-4",
-    projectId: "bentonville-hs",
-    project: "Bentonville HS — Storefront",
-    message: "Submittal SUB-SF Rev 1 returned Revise & Resubmit — sill detail at Entry 3",
-    nextAction: "Update detail and resubmit Rev 2 to Polk Stanley Wilcox",
-    severity: "warning" as const,
-    age: "Aug 3",
-  },
-]
-
-export function ExceptionsPanel() {
-  return (
-    <div className="border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2">
-          <SectionHeading title="Needs Attention Today" />
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-muted px-1.5 text-[11px] text-danger tabular-nums">
-            {EXCEPTIONS.length}
-          </span>
-        </div>
-      </div>
-      <ul className="divide-y divide-border">
-        {EXCEPTIONS.map((exc) => (
-          <li key={exc.id}>
-            <Link
-              href={`/projects/${exc.projectId}`}
-              className="flex items-start gap-3 px-4 py-3.5 hover:bg-muted/40 transition-colors"
-            >
-              <AlertTriangle
-                className={cn(
-                  "mt-0.5 size-4 shrink-0",
-                  exc.severity === "danger" ? "text-danger" : "text-warning",
-                )}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground mb-0.5">{exc.project}</p>
-                <p className="text-sm text-foreground">{exc.message}</p>
-                <p className="mt-1 text-xs text-primary">
-                  Next action: {exc.nextAction}
-                </p>
-              </div>
-              <div className="shrink-0 flex flex-col items-end gap-1">
-                <StatusPill tone={exc.severity}>
-                  {exc.severity === "danger" ? "Critical" : "At Risk"}
-                </StatusPill>
-                <span className="text-[10px] text-muted-foreground">{exc.age}</span>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-// ─── Active Projects Table ─────────────────────────────────────────────────
-export function ActiveProjectsTable() {
-  // At-risk first, then sort by install window
-  const sorted = [...ACTIVE_PROJECTS].sort((a, b) => {
-    const rankA = a.healthStatus === "Late" ? 0 : a.healthStatus === "At Risk" ? 1 : 2
-    const rankB = b.healthStatus === "Late" ? 0 : b.healthStatus === "At Risk" ? 1 : 2
-    if (rankA !== rankB) return rankA - rankB
-    return new Date(a.installWindowStart).getTime() - new Date(b.installWindowStart).getTime()
+  // Bids due within 7 days (relative to demo date 2026-08-07)
+  const demoNow = new Date("2026-08-07")
+  const bidsUrgent = BIDS.filter((b) => {
+    const due = new Date(b.bidDueDate)
+    return due >= demoNow && due <= new Date(demoNow.getTime() + 7 * 86_400_000)
   })
 
+  const openPipeline = OPPORTUNITIES
+    .filter((o) => !["Won","Lost"].includes(o.stage))
+    .reduce((s, o) => s + o.value, 0)
+
   return (
-    <div className="border border-border bg-card">
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <SectionHeading title="Active Projects" />
-        <Link
-          href="/projects"
-          className="flex items-center gap-1 text-xs text-primary hover:underline"
-        >
-          View all <ChevronRight className="size-3" />
-        </Link>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="px-4 py-2.5 text-left text-[11px] text-muted-foreground font-normal uppercase tracking-wider">Job</th>
-              <th className="px-4 py-2.5 text-left text-[11px] text-muted-foreground font-normal uppercase tracking-wider hidden md:table-cell">Phase</th>
-              <th className="px-4 py-2.5 text-left text-[11px] text-muted-foreground font-normal uppercase tracking-wider hidden lg:table-cell">% Done</th>
-              <th className="px-4 py-2.5 text-left text-[11px] text-muted-foreground font-normal uppercase tracking-wider hidden lg:table-cell">Install Window</th>
-              <th className="px-4 py-2.5 text-left text-[11px] text-muted-foreground font-normal uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {sorted.map((p) => (
-              <tr key={p.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3">
-                  <Link href={`/projects/${p.id}`} className="hover:text-primary">
-                    <p className="text-foreground">{p.name}</p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {p.city}, {p.state} · {p.gc}
-                    </p>
-                    {p.healthStatus !== "On Schedule" && p.atRiskReason && (
-                      <p className="mt-0.5 text-[11px] text-warning">{p.atRiskReason}</p>
-                    )}
+    <PageContainer>
+      {/* ── Header ── */}
+      <header className="border-b border-border pb-6">
+        <p className="text-overline text-muted-foreground/50 mb-1">Commercial Glass &amp; Metal</p>
+        <h1 className="text-3xl text-foreground" style={{ letterSpacing: "-0.03em" }}>
+          Pulse Dashboard
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {new Date("2026-08-07").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          <span className="mx-2 text-muted-foreground/30">·</span>
+          {activeJobs} active jobs · {formatCurrency(totalCV)} portfolio
+        </p>
+      </header>
+
+      {/* ── Alerts strip ── */}
+      {(atRisk + late + blocked.length + openTickets + crewConflicts > 0) && (
+        <section className="mt-5 space-y-2" aria-label="Active alerts">
+          {late > 0 && (
+            <Alert tone="danger">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span><strong className="text-danger-strong">{late} job{late > 1 ? "s" : ""}</strong> are past their install window.</span>
+            </Alert>
+          )}
+          {atRisk > 0 && (
+            <Alert tone="warning">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span><strong>{atRisk} job{atRisk > 1 ? "s" : ""} at risk</strong> — fabrication or vendor delays.</span>
+            </Alert>
+          )}
+          {blocked.length > 0 && (
+            <Alert tone="danger">
+              <Package className="size-4 shrink-0" />
+              <span>
+                <strong className="text-danger-strong">{blocked.length} fab item{blocked.length > 1 ? "s" : ""} blocked</strong>
+                {" — "}{blocked.map((b) => b.blockReason).filter(Boolean).slice(0, 1).join(", ")}.{" "}
+                <Link href="/fabrication" className="underline underline-offset-2 text-danger-strong hover:text-danger">View fabrication</Link>
+              </span>
+            </Alert>
+          )}
+          {crewConflicts > 0 && (
+            <Alert tone="warning">
+              <CalendarRange className="size-4 shrink-0" />
+              <span>
+                <strong>{crewConflicts} crew scheduling conflict{crewConflicts > 1 ? "s" : ""}</strong> detected.{" "}
+                <Link href="/schedule" className="underline underline-offset-2 text-warning hover:text-warning-strong">Review schedule</Link>
+              </span>
+            </Alert>
+          )}
+          {openTickets > 0 && (
+            <Alert tone="warning">
+              <Zap className="size-4 shrink-0" />
+              <span>
+                <strong>{openTickets} emergency dispatch {openTickets > 1 ? "tickets" : "ticket"}</strong> open.{" "}
+                <Link href="/dispatch" className="underline underline-offset-2 text-warning hover:text-warning-strong">View dispatch</Link>
+              </span>
+            </Alert>
+          )}
+        </section>
+      )}
+
+      {/* ── Top KPIs ── */}
+      <section className="mt-6 grid grid-cols-2 gap-px bg-border sm:grid-cols-3 lg:grid-cols-6" aria-label="Key metrics">
+        <StatTile label="Active Jobs"     value={activeJobs}            tone="neutral" />
+        <StatTile label="At Risk / Late"  value={`${atRisk + late}`}    tone={atRisk + late > 0 ? "danger" : "success"}
+                  sub={atRisk + late > 0 ? "Needs attention" : "All on schedule"} />
+        <StatTile label="Fab Blocked"     value={blocked.length}        tone={blocked.length > 0 ? "danger" : "success"}
+                  sub={blocked.length > 0 ? "Action required" : "Shop clear"} />
+        <StatTile label="Crew Conflicts"  value={crewConflicts}         tone={crewConflicts > 0 ? "warning" : "success"} />
+        <StatTile label="Open Bids"       value={BIDS.filter((b) => !["Awarded","Lost"].includes(b.status)).length} tone="info" />
+        <StatTile label="Pipeline"        value={formatCurrency(openPipeline)} tone="info" />
+      </section>
+
+      {/* ── Main grid ── */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
+
+        {/* Left column */}
+        <div className="space-y-6">
+
+          {/* Summer deadline watch */}
+          {summerJobs.length > 0 && (
+            <section className="border border-warning/30 bg-warning-muted">
+              <div className="flex items-center gap-2 border-b border-warning/20 px-4 py-3">
+                <CalendarRange className="size-4 text-warning" />
+                <SectionHeading title={`Summer Shutdown Watch — ${summerJobs.length} jobs`} />
+              </div>
+              <div className="divide-y divide-warning/10">
+                {summerJobs.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/projects/${p.id}`}
+                    className="flex items-start gap-4 px-4 py-3 hover:bg-warning/5 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-foreground">{p.name}</p>
+                        <StatusPill tone={healthTone(p.healthStatus)} className="text-[10px]">
+                          {p.healthStatus}
+                        </StatusPill>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{p.city}, {p.state} · {p.hardDeadlineWindow}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs tabular-nums text-foreground">
+                        {new Date(p.installWindowStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })}–
+                        {new Date(p.installWindowEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </p>
+                      <div className="mt-1">
+                        <Meter value={p.percentComplete} tone={healthTone(p.healthStatus)} className="w-24" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{p.percentComplete}%</p>
+                    </div>
                   </Link>
-                </td>
-                <td className="px-4 py-3 hidden md:table-cell">
-                  <span className="text-xs text-muted-foreground">{p.phase}</span>
-                </td>
-                <td className="px-4 py-3 hidden lg:table-cell">
-                  <div className="flex items-center gap-2">
-                    <Meter value={p.percentComplete} tone={healthTone(p.healthStatus)} className="w-20" />
-                    <span className="text-xs text-muted-foreground tabular-nums">{p.percentComplete}%</span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* At-risk jobs */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <SectionHeading title="Jobs Needing Attention" description="At risk and late, sorted by health" />
+              <Link href="/projects" className="text-xs text-primary hover:underline">All projects</Link>
+            </div>
+            <div className="divide-y divide-border">
+              {PROJECTS
+                .filter((p) => p.healthStatus !== "On Schedule")
+                .concat(PROJECTS.filter((p) => p.healthStatus === "On Schedule").slice(0, 3))
+                .slice(0, 8)
+                .map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/projects/${p.id}`}
+                    className="flex items-center gap-4 px-4 py-3 hover:bg-muted/20 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-foreground group-hover:text-primary">{p.name}</p>
+                        <StatusPill tone={healthTone(p.healthStatus)} className="text-[10px]">
+                          {p.healthStatus}
+                        </StatusPill>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{p.phase} · {p.city}, {p.state}</p>
+                      {p.atRiskReason && (
+                        <p className="text-[11px] text-warning mt-0.5">{p.atRiskReason}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs tabular-nums text-muted-foreground">{formatCurrency(p.contractValue)}</p>
+                      <div className="mt-1 w-20">
+                        <Meter value={p.percentComplete} tone={healthTone(p.healthStatus)} />
+                        <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{p.percentComplete}%</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </section>
+
+          {/* Fabrication blocked */}
+          {blocked.length > 0 && (
+            <section className="border border-danger/30 bg-danger-muted">
+              <div className="border-b border-danger/20 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="size-4 text-danger" />
+                  <SectionHeading title={`${blocked.length} Blocked Fab Items`} />
+                </div>
+                <Link href="/fabrication" className="text-xs text-danger hover:underline">View all</Link>
+              </div>
+              <div className="divide-y divide-danger/10">
+                {blocked.map((item) => (
+                  <div key={item.id} className="px-4 py-3">
+                    <p className="text-sm text-foreground">{item.description}</p>
+                    <p className="text-[11px] text-muted-foreground">{item.system} · {item.liteCount} lites</p>
+                    {item.blockReason && (
+                      <p className="mt-0.5 text-xs text-danger">{item.blockReason}</p>
+                    )}
                   </div>
-                </td>
-                <td className="px-4 py-3 hidden lg:table-cell text-xs text-muted-foreground whitespace-nowrap">
-                  {new Date(p.installWindowStart).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                  {" – "}
-                  {new Date(p.installWindowEnd).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
-                  {p.hardDeadlineWindow && (
-                    <span className="ml-1 text-warning/80">⚑</span>
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusPill tone={healthTone(p.healthStatus)}>
-                    {p.healthStatus}
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-5">
+
+          {/* Bids due this week */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="size-4 text-muted-foreground/50" />
+                <SectionHeading title="Bids Due This Week" />
+              </div>
+              <Link href="/bids" className="text-xs text-primary hover:underline">All bids</Link>
+            </div>
+            {bidsUrgent.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">No bids due in next 7 days.</div>
+            ) : (
+              <div className="divide-y divide-border">
+                {bidsUrgent.map((bid) => (
+                  <Link
+                    key={bid.ref}
+                    href={`/bids/${bid.ref}`}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-muted/20 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground">{bid.projectName}</p>
+                      <p className="text-[11px] text-muted-foreground">{bid.gc} · {bid.estimator}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs tabular-nums text-warning">
+                        {new Date(bid.bidDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{bid.estimatedHours}h est.</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Pipeline snapshot */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-muted-foreground/50" />
+                <SectionHeading title="Pipeline Snapshot" />
+              </div>
+              <Link href="/pipeline" className="text-xs text-primary hover:underline">Open board</Link>
+            </div>
+            <div className="divide-y divide-border">
+              {(["Lead","Qualified","Bidding","Proposal Out"] as const).map((stage) => {
+                const items = OPPORTUNITIES.filter((o) => o.stage === stage)
+                const val = items.reduce((s, o) => s + o.value, 0)
+                return (
+                  <div key={stage} className="flex items-center justify-between px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{stage}</span>
+                      <span className="text-[10px] text-muted-foreground/50">{items.length}</span>
+                    </div>
+                    <span className="text-xs tabular-nums text-foreground">{formatCurrency(val)}</span>
+                  </div>
+                )
+              })}
+              <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
+                <span className="text-xs font-medium text-foreground">Total Open</span>
+                <span className="text-xs tabular-nums text-foreground">{formatCurrency(openPipeline)}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Emergency dispatch status */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="size-4 text-muted-foreground/50" />
+                <SectionHeading title="Emergency Dispatch" />
+              </div>
+              <Link href="/dispatch" className="text-xs text-primary hover:underline">All tickets</Link>
+            </div>
+            <div className="divide-y divide-border">
+              {TICKETS.filter((t) => t.status !== "Resolved").slice(0, 4).map((t) => (
+                <div key={t.id} className="flex items-start gap-3 px-4 py-3">
+                  <span className={cn(
+                    "mt-1.5 size-2 rounded-full shrink-0",
+                    t.status === "New" ? "bg-danger animate-pulse" : "bg-warning"
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-foreground truncate">{t.location}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{t.opening}</p>
+                  </div>
+                  <StatusPill tone={t.status === "New" ? "danger" : "warning"} className="text-[10px] shrink-0">
+                    {t.status}
                   </StatusPill>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              ))}
+              {TICKETS.filter((t) => t.status !== "Resolved").length === 0 && (
+                <div className="px-4 py-5 text-center text-sm text-success">
+                  No open service calls.
+                </div>
+              )}
+            </div>
+          </section>
+
+        </div>
       </div>
-    </div>
+    </PageContainer>
   )
 }
 
-// ─── Activity Feed ─────────────────────────────────────────────────────────
-export function ActivityFeed() {
+function Alert({
+  tone,
+  children,
+}: {
+  tone: "danger" | "warning"
+  children: React.ReactNode
+}) {
+  const styles = {
+    danger:  "border-danger/30 bg-danger-muted text-danger-strong",
+    warning: "border-warning/30 bg-warning-muted text-warning-strong",
+  }
   return (
-    <div className="border border-border bg-card">
-      <div className="border-b border-border px-4 py-3">
-        <SectionHeading title="Recent Activity" />
-      </div>
-      <ul className="divide-y divide-border">
-        {ACTIVITY.map((a) => (
-          <li key={a.id} className="flex items-start gap-3 px-4 py-3">
-            <Clock className="mt-0.5 size-3.5 shrink-0 text-muted-foreground/40" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-foreground leading-snug">{a.message}</p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
-                {a.actor} · {new Date(a.timestamp).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className={cn("flex items-start gap-2.5 border px-4 py-3 text-sm", styles[tone])}>
+      {children}
     </div>
   )
 }
