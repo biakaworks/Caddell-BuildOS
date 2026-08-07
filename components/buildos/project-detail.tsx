@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { ArrowLeft, AlertTriangle, Package, Calendar, FileText, Clock } from "lucide-react"
 import { FAB_ITEMS, INSTALL_EVENTS, DOCUMENTS, ACTIVITY, formatCurrency } from "@/lib/data/fixtures"
+import { fmtDate, fmtDateTime } from "@/lib/format"
 import { PageContainer, PageHeader, StatusPill, SectionHeading, healthTone, statusToTone, Meter, PhaseTrack, StatTile } from "./ui"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { Project } from "@/lib/types"
@@ -99,11 +100,11 @@ export function ProjectDetail({ project }: { project: Project }) {
         />
         <StatTile
           label="Install Window"
-          value={new Date(project.installWindowStart).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+          value={fmtDate(project.installWindowStart, { month: "short", year: "numeric" })}
           sub={
             project.hardDeadlineWindow
               ? `Hard deadline: ${project.hardDeadlineWindow}`
-              : `Ends ${new Date(project.installWindowEnd).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+              : `Ends ${fmtDate(project.installWindowEnd, { month: "short", day: "numeric", year: "numeric" })}`
           }
           tone={project.hardDeadlineWindow ? "warning" : "neutral"}
         />
@@ -211,8 +212,8 @@ function OverviewTab({ project }: { project: Project }) {
             { label: "GC",           value: project.gc },
             { label: "Sector",       value: project.sector },
             { label: "City / State", value: `${project.city}, ${project.state}` },
-            { label: "Install Start", value: new Date(project.installWindowStart).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
-            { label: "Install End",   value: new Date(project.installWindowEnd).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) },
+            { label: "Install Start", value: fmtDate(project.installWindowStart, { month: "long", day: "numeric", year: "numeric" }) },
+            { label: "Install End",   value: fmtDate(project.installWindowEnd, { month: "long", day: "numeric", year: "numeric" }) },
             ...(project.hardDeadlineWindow ? [{ label: "Hard Deadline", value: project.hardDeadlineWindow }] : []),
             { label: "Contract",     value: formatCurrency(project.contractValue, false) },
           ].map(({ label, value }) => (
@@ -260,7 +261,7 @@ function FabricationTab({ items }: { items: ReturnType<typeof FAB_ITEMS.filter> 
           </div>
           <div className="shrink-0 text-right">
             <StatusPill tone="danger">Blocked</StatusPill>
-            <p className="mt-1 text-[10px] text-muted-foreground">Due {new Date(item.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</p>
+            <p className="mt-1 text-[10px] text-muted-foreground">Due {fmtDate(item.dueDate, { month: "short", day: "numeric" })}</p>
           </div>
         </div>
       ))}
@@ -281,7 +282,7 @@ function FabricationTab({ items }: { items: ReturnType<typeof FAB_ITEMS.filter> 
                     <p className="text-[11px] text-foreground leading-snug">{item.description}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">{item.liteCount} lites</p>
                     <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                      Due {new Date(item.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                      Due {fmtDate(item.dueDate, { month: "short", day: "numeric" })}
                     </p>
                   </div>
                 ))}
@@ -318,9 +319,9 @@ function InstallTab({ events }: { events: ReturnType<typeof INSTALL_EVENTS.filte
           </div>
           <div className="text-right">
             <p className="text-xs text-foreground">
-              {new Date(evt.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+              {fmtDate(evt.startDate, { month: "short", day: "numeric" })}
               {" – "}
-              {new Date(evt.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+              {fmtDate(evt.endDate, { month: "short", day: "numeric", year: "numeric" })}
             </p>
             {evt.conflictWith && (
               <p className="text-[11px] text-warning mt-0.5 flex items-center gap-1 justify-end">
@@ -368,7 +369,7 @@ function DocumentsTab({ docs }: { docs: ReturnType<typeof DOCUMENTS.filter> }) {
                 <StatusPill tone={statusToTone(doc.approvalState)}>{doc.approvalState}</StatusPill>
               </td>
               <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                {new Date(doc.updatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {fmtDate(doc.updatedAt, { month: "short", day: "numeric", year: "numeric" })}
               </td>
             </tr>
           ))}
@@ -397,7 +398,7 @@ function ActivityTab({ events }: { events: ReturnType<typeof ACTIVITY.filter> })
             <p className="text-sm text-foreground">{evt.message}</p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               {evt.actor} &middot;{" "}
-              {new Date(evt.timestamp).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+              {fmtDateTime(evt.timestamp, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
             </p>
           </div>
         </div>

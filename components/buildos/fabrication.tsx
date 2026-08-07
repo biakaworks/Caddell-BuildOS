@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { AlertTriangle } from "lucide-react"
 import { FAB_ITEMS, PROJECTS } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import { FAB_STAGES } from "@/lib/types"
 import type { FabStage } from "@/lib/types"
 import { PageContainer, PageHeader, StatusPill, StatTile } from "./ui"
@@ -66,7 +67,7 @@ export function FabricationBoard() {
                 <div className="shrink-0 text-right">
                   <StatusPill tone="danger">Blocked</StatusPill>
                   <p className="mt-1 text-[10px] text-muted-foreground">
-                    Due {new Date(item.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    Due {fmtDate(item.dueDate, { month: "short", day: "numeric" })}
                   </p>
                 </div>
               </div>
@@ -142,7 +143,7 @@ export function FabricationBoard() {
                 <td className="px-4 py-3 tabular-nums text-muted-foreground">{item.liteCount}</td>
                 <td className="px-4 py-3 text-muted-foreground">{item.stage}</td>
                 <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                  {new Date(item.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  {fmtDate(item.dueDate, { month: "short", day: "numeric" })}
                 </td>
                 <td className="px-4 py-3">
                   {item.blocked ? (
@@ -174,7 +175,7 @@ function FabCard({ item }: { item: (typeof FAB_ITEMS)[number] }) {
       <p className="text-[11px] text-foreground leading-snug">{item.description}</p>
       <p className="text-[10px] text-muted-foreground">{item.liteCount} lites</p>
       <p className="text-[10px] text-muted-foreground/60">
-        Due {new Date(item.dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+        Due {fmtDate(item.dueDate, { month: "short", day: "numeric" })}
       </p>
     </div>
   )

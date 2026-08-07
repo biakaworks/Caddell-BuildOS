@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { AlertTriangle } from "lucide-react"
 import { INSTALL_EVENTS, PROJECTS } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import { PageContainer, PageHeader, StatusPill, StatTile, SectionHeading } from "./ui"
 import { cn } from "@/lib/utils"
 
@@ -16,17 +17,16 @@ function projectName(id: string) {
   return PROJECTS.find((p) => p.id === id)?.name ?? id
 }
 
-// Generate a list of months in the schedule
+// Generate a list of months in the schedule. Built entirely in UTC so the month
+// axis is identical on server and client regardless of local timezone.
 function getMonths(): { label: string; start: Date; end: Date }[] {
-  // Aug 2026 – Aug 2027
+  // Aug 2026 – Aug 2027 (month index 7 = August)
   const months: { label: string; start: Date; end: Date }[] = []
-  const start = new Date("2026-08-01")
   for (let i = 0; i < 13; i++) {
-    const d = new Date(start)
-    d.setMonth(d.getMonth() + i)
-    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0)
+    const d = new Date(Date.UTC(2026, 7 + i, 1))
+    const end = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0))
     months.push({
-      label: d.toLocaleDateString("en-US", { month: "short", year: "2-digit" }),
+      label: fmtDate(d, { month: "short", year: "2-digit" }),
       start: d,
       end,
     })
@@ -191,10 +191,10 @@ export function InstallSchedule() {
                   <td className="px-4 py-3 text-muted-foreground">{evt.city}</td>
                   <td className="px-4 py-3 text-muted-foreground">{evt.state}</td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {new Date(evt.startDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    {fmtDate(evt.startDate, { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {new Date(evt.endDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    {fmtDate(evt.endDate, { month: "short", day: "numeric", year: "numeric" })}
                   </td>
                   <td className="px-4 py-3">
                     {evt.conflictWith ? (

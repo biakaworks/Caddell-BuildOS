@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { BIDS } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import { BID_STATUSES } from "@/lib/types"
 import type { BidStatus } from "@/lib/types"
 import { PageContainer, PageHeader, StatusPill, statusToTone, StatTile, SectionHeading } from "./ui"
@@ -117,7 +118,7 @@ export function BidsList() {
                     </div>
                   </td>
                   <td className={cn("px-4 py-3 whitespace-nowrap text-xs tabular-nums", isUrgent && "text-warning", isPast && !["Submitted","Awarded","Lost"].includes(bid.status) && "text-danger")}>
-                    {new Date(bid.bidDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    {fmtDate(bid.bidDueDate, { month: "short", day: "numeric" })}
                     {isUrgent && <span className="ml-1 text-[10px]">⚑</span>}
                   </td>
                   <td className="px-4 py-3 tabular-nums text-muted-foreground">{bid.estimatedHours}h</td>
@@ -177,7 +178,7 @@ export function BidDetail({ bidRef }: { bidRef: string }) {
         <div className="text-right">
           <p className="text-[11px] text-muted-foreground">Bid Due</p>
           <p className="text-xl text-foreground tabular-nums" style={{ letterSpacing: "-0.02em" }}>
-            {new Date(bid.bidDueDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            {fmtDate(bid.bidDueDate, { month: "long", day: "numeric", year: "numeric" })}
           </p>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Zap, Phone, MapPin, Clock } from "lucide-react"
 import { TICKETS } from "@/lib/data/fixtures"
+import { fmtDate, fmtDateTime } from "@/lib/format"
 import type { TicketStatus } from "@/lib/types"
 import { PageContainer, PageHeader, StatusPill, statusToTone, StatTile, SectionHeading } from "./ui"
 import { cn } from "@/lib/utils"
@@ -18,8 +19,12 @@ const STATUS_DOT: Record<TicketStatus, string> = {
   Resolved:   "bg-muted-foreground/40",
 }
 
+// Fixed demo "now" so relative times are deterministic (identical on server and
+// client, avoiding hydration mismatch) and sensible against the 2026 fixtures.
+const DEMO_NOW = new Date("2026-08-07T12:00:00Z").getTime()
+
 function elapsed(dateStr: string) {
-  const ms = new Date().getTime() - new Date(dateStr).getTime()
+  const ms = DEMO_NOW - new Date(dateStr).getTime()
   const mins = Math.floor(ms / 60_000)
   if (mins < 60) return `${mins}m ago`
   const hrs = Math.floor(mins / 60)
@@ -170,7 +175,7 @@ function TicketDetail({ ticket }: { ticket: (typeof TICKETS)[number] }) {
             <div>
               <p className="text-[10px] text-muted-foreground">Scheduled Repair</p>
               <p className="text-sm text-foreground">
-                {new Date(ticket.scheduledAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                {fmtDate(ticket.scheduledAt, { month: "short", day: "numeric", year: "numeric" })}
               </p>
             </div>
           </div>
@@ -201,7 +206,7 @@ function TicketDetail({ ticket }: { ticket: (typeof TICKETS)[number] }) {
                   <p className={cn("text-xs", done ? "text-foreground" : "text-muted-foreground/50")}>{step.label}</p>
                   {step.time && (
                     <p className="text-[10px] text-muted-foreground">
-                      {new Date(step.time).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                      {fmtDateTime(step.time, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
                     </p>
                   )}
                 </div>

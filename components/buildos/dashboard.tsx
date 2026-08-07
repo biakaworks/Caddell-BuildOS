@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { AlertTriangle, TrendingUp, Package, CalendarRange, ClipboardList, Zap } from "lucide-react"
 import { PROJECTS, FAB_ITEMS, INSTALL_EVENTS, BIDS, OPPORTUNITIES, TICKETS, formatCurrency } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import { PageContainer, StatusPill, healthTone, Meter, StatTile, SectionHeading, TrendDelta } from "./ui"
 import { cn } from "@/lib/utils"
 
@@ -39,7 +40,7 @@ export function Dashboard() {
           Pulse Dashboard
         </h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
-          {new Date("2026-08-07").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          {fmtDate("2026-08-07", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
           <span className="mx-2 text-muted-foreground/30">·</span>
           {activeJobs} active jobs · {formatCurrency(totalCV)} portfolio
         </p>
@@ -134,8 +135,8 @@ export function Dashboard() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs tabular-nums text-foreground">
-                        {new Date(p.installWindowStart).toLocaleDateString("en-US", { month: "short", day: "numeric" })}–
-                        {new Date(p.installWindowEnd).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        {fmtDate(p.installWindowStart, { month: "short", day: "numeric" })}–
+                        {fmtDate(p.installWindowEnd, { month: "short", day: "numeric" })}
                       </p>
                       <div className="mt-1">
                         <Meter value={p.percentComplete} tone={healthTone(p.healthStatus)} className="w-24" />
@@ -242,7 +243,7 @@ export function Dashboard() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs tabular-nums text-warning">
-                        {new Date(bid.bidDueDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                        {fmtDate(bid.bidDueDate, { month: "short", day: "numeric" })}
                       </p>
                       <p className="text-[10px] text-muted-foreground">{bid.estimatedHours}h est.</p>
                     </div>

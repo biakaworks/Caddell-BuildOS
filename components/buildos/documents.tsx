@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { FileText } from "lucide-react"
 import { DOCUMENTS, PROJECTS } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import type { ApprovalState, DocType } from "@/lib/types"
 import { PageContainer, PageHeader, StatusPill, statusToTone, StatTile } from "./ui"
 import { cn } from "@/lib/utils"
@@ -146,7 +147,7 @@ export function DocumentsView() {
                   <StatusPill tone={statusToTone(doc.approvalState)}>{doc.approvalState}</StatusPill>
                 </td>
                 <td className="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                  {new Date(doc.updatedAt).toLocaleDateString("en-US", {
+                  {fmtDate(doc.updatedAt, {
                     month: "short",
                     day: "numeric",
                     year: "numeric",

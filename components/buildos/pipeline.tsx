@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { OPPORTUNITIES, formatCurrency } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import { OPPORTUNITY_STAGES } from "@/lib/types"
 import type { OpportunityStage } from "@/lib/types"
 import { PageContainer, PageHeader, StatusPill, SectionHeading } from "./ui"
@@ -90,7 +91,7 @@ export function PipelineBoard() {
                         {formatCurrency(opp.value)}
                       </span>
                       <span className="text-[11px] text-muted-foreground">
-                        {new Date(opp.closeDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                        {fmtDate(opp.closeDate, { month: "short", year: "numeric" })}
                       </span>
                     </div>
                     <p className="text-[10px] text-muted-foreground/60">
@@ -138,7 +139,7 @@ export function PipelineBoard() {
                     <td className="px-4 py-3 text-muted-foreground">{opp.sector}</td>
                     <td className="px-4 py-3 tabular-nums text-foreground">{formatCurrency(opp.value)}</td>
                     <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                      {new Date(opp.closeDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                      {fmtDate(opp.closeDate, { month: "short", day: "numeric", year: "numeric" })}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">{opp.owner}</td>
                     <td className="px-4 py-3">

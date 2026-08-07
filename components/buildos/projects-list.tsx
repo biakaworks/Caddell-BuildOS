@@ -3,6 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { PROJECTS, formatCurrency } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
 import { PageContainer, PageHeader, StatusPill, healthTone, Meter } from "./ui"
 import type { Sector, State, SystemType } from "@/lib/types"
 import { cn } from "@/lib/utils"
@@ -118,7 +119,7 @@ export function ProjectsList() {
             <div className="flex items-center justify-between text-[11px] text-muted-foreground border-t border-border pt-2.5">
               <span className="tabular-nums">{formatCurrency(p.contractValue)}</span>
               <span>
-                Install: {new Date(p.installWindowStart).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                Install: {fmtDate(p.installWindowStart, { month: "short", year: "numeric" })}
                 {p.hardDeadlineWindow && <span className="ml-1 text-warning">⚑</span>}
               </span>
             </div>
