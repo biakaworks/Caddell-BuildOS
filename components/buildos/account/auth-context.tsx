@@ -28,8 +28,6 @@ export type InviteInput = {
 
 type AuthContextValue = {
   signedIn: boolean
-  /** False until the session has been rehydrated from storage on the client. */
-  hydrated: boolean
   currentUser: AccountUser
   users: AccountUser[]
   notifications: NotificationPref[]
@@ -53,7 +51,6 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [signedIn, setSignedIn] = useState(false)
-  const [hydrated, setHydrated] = useState(false)
   const [users, setUsers] = useState<AccountUser[]>(ACCOUNT_USERS)
   const [currentUserId] = useState(DEMO_USER_ID)
   const [notifications, setNotifications] = useState<NotificationPref[]>(DEFAULT_NOTIFICATIONS)
@@ -68,7 +65,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (savedRole) {
       setUsers((prev) => prev.map((u) => (u.id === DEMO_USER_ID ? { ...u, role: savedRole } : u)))
     }
-    setHydrated(true)
   }, [])
 
   const currentUser = useMemo(
@@ -135,7 +131,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       signedIn,
-      hydrated,
       currentUser,
       users,
       notifications,
@@ -152,7 +147,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }),
     [
       signedIn,
-      hydrated,
       currentUser,
       users,
       notifications,
