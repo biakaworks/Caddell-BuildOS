@@ -141,7 +141,7 @@ export function BidsList() {
 }
 
 // ─── Bid Detail ───────────────────────────────────────────────────────────────
-export function BidDetail({ ref: bidRef }: { ref: string }) {
+export function BidDetail({ bidRef }: { bidRef: string }) {
   const bid = BIDS.find((b) => b.ref === bidRef)
 
   if (!bid) {

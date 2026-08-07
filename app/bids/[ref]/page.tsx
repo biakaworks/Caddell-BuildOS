@@ -14,5 +14,5 @@ export default async function BidDetailPage({
   const { ref } = await params
   const bid = BIDS.find((b) => b.ref === ref)
   if (!bid) notFound()
-  return <BidDetail ref={ref} />
+  return <BidDetail bidRef={ref} />
 }
