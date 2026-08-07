@@ -1,53 +1,37 @@
-"use client"
-
-import { PageContainer, PageHeader } from "@/components/buildos/ui"
+import { PageContainer } from "@/components/buildos/ui"
 import {
-  KpiTiles,
-  NeedsAttention,
-  PipelineMini,
+  PulseStatRow,
+  SchedulePressureStrip,
+  ExceptionsPanel,
+  ActiveProjectsTable,
   ActivityFeed,
-  PromoStrip,
-  PredictiveInsights,
 } from "@/components/buildos/dashboard"
-import { PortfolioMap } from "@/components/buildos/portfolio-map/portfolio-map"
-import { useApp } from "@/components/buildos/app-context"
 
-export default function DashboardPage() {
-  const { unit } = useApp()
+export default function PulseDashboard() {
   return (
     <PageContainer>
-      <PageHeader
-        title="Pulse"
-        subtitle={
-          unit === "All"
-            ? "Portfolio health across Commercial, Governmental, and International business units."
-            : `Portfolio health — filtered to the ${unit} business unit.`
-        }
-      >
-        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground">
-          <span className="size-1.5 rounded-full bg-gold" aria-hidden="true" />
-          Updated just now
-        </span>
-      </PageHeader>
+      <div className="mb-6">
+        <h1
+          className="text-2xl text-foreground mb-1"
+          style={{ letterSpacing: "-0.03em" }}
+        >
+          Pulse
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Commercial Glass &amp; Metal — glazing operations overview · Aug 7, 2026
+        </p>
+      </div>
 
-      <div className="mt-6 space-y-6">
-        <KpiTiles />
-        <PromoStrip />
-        <PortfolioMap />
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <div className="xl:col-span-2">
-            <NeedsAttention />
+      <div className="space-y-6">
+        <PulseStatRow />
+        <SchedulePressureStrip />
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <ExceptionsPanel />
+            <ActiveProjectsTable />
           </div>
-          <div className="space-y-6">
-            <PipelineMini />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <div className="xl:col-span-2">
+          <div>
             <ActivityFeed />
-          </div>
-          <div className="space-y-6">
-            <PredictiveInsights />
           </div>
         </div>
       </div>

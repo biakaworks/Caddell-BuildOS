@@ -1,63 +1,27 @@
 "use client"
 
 import { createContext, use, useMemo, useState } from "react"
-import type { BusinessUnit } from "@/lib/mock-data"
 
-type UnitFilter = BusinessUnit | "All"
+type ViewMode = "internal" | "client"
 
 type AppContextValue = {
-  unit: UnitFilter
-  setUnit: (u: UnitFilter) => void
-  askOpen: boolean
-  setAskOpen: (v: boolean) => void
-  askSeed: string
-  openAsk: (seed?: string) => void
-  ownerView: boolean
-  setOwnerView: (v: boolean) => void
-  /**
-   * Block ids staged from the Reporting chart library, waiting to be pulled
-   * into the Portfolio Builder. Persisted across route navigation because the
-   * provider lives in the root shell.
-   */
-  stagedBlocks: string[]
-  isStaged: (id: string) => boolean
-  toggleStaged: (id: string) => void
-  unstageBlock: (id: string) => void
-  clearStaged: () => void
+  viewMode: ViewMode
+  setViewMode: (m: ViewMode) => void
+  isClientView: boolean
 }
 
 const AppContext = createContext<AppContextValue | null>(null)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [unit, setUnit] = useState<UnitFilter>("All")
-  const [askOpen, setAskOpen] = useState(false)
-  const [askSeed, setAskSeed] = useState("")
-  const [ownerView, setOwnerView] = useState(false)
-  const [stagedBlocks, setStagedBlocks] = useState<string[]>([])
+  const [viewMode, setViewMode] = useState<ViewMode>("internal")
 
   const value = useMemo<AppContextValue>(
     () => ({
-      unit,
-      setUnit,
-      askOpen,
-      setAskOpen,
-      askSeed,
-      openAsk: (seed = "") => {
-        setAskSeed(seed)
-        setAskOpen(true)
-      },
-      ownerView,
-      setOwnerView,
-      stagedBlocks,
-      isStaged: (id) => stagedBlocks.includes(id),
-      toggleStaged: (id) =>
-        setStagedBlocks((prev) =>
-          prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-        ),
-      unstageBlock: (id) => setStagedBlocks((prev) => prev.filter((x) => x !== id)),
-      clearStaged: () => setStagedBlocks([]),
+      viewMode,
+      setViewMode,
+      isClientView: viewMode === "client",
     }),
-    [unit, askOpen, askSeed, ownerView, stagedBlocks],
+    [viewMode],
   )
 
   return <AppContext value={value}>{children}</AppContext>
