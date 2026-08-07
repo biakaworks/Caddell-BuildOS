@@ -52,11 +52,11 @@ export function Sparkline({
 export type Tone = "success" | "warning" | "danger" | "info" | "neutral"
 
 const toneClass: Record<Tone, string> = {
-  success: "bg-success-muted text-success-strong",
-  warning: "bg-warning-muted text-warning-strong",
-  danger:  "bg-danger-muted text-danger-strong",
-  info:    "bg-info-muted text-info",
-  neutral: "bg-secondary text-muted-foreground",
+  success: "border border-success/25 bg-success-muted text-success-strong",
+  warning: "border border-warning/25 bg-warning-muted text-warning-strong",
+  danger:  "border border-danger/25 bg-danger-muted text-danger-strong",
+  info:    "border border-info/25 bg-info-muted text-info",
+  neutral: "border border-border bg-secondary text-muted-foreground",
 }
 
 const dotClass: Record<Tone, string> = {

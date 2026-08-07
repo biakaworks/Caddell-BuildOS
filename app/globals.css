@@ -3,6 +3,7 @@
 @import 'shadcn/tailwind.css';
 
 /* CG&M Glazing Operations Platform — Midwestern token layer */
+/* Light is the default. Dark is one attribute away: <html class="dark" data-theme="dark">. */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -12,82 +13,59 @@
   --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
 
   /* ------------------------------------------------------------------ */
-  /* MW PRIMITIVES                                                        */
+  /* SEMANTIC TOKENS — mapped to switchable CSS vars (light/dark below)  */
   /* ------------------------------------------------------------------ */
-  --color-mw-white:        #F6F7FE;
-  --color-mw-muted-light:  #E8E9F4;
-  --color-mw-light-gray:   #A9A9A9;
-  --color-mw-medium-gray:  #949494;
-  --color-mw-dark-gray:    #666666;
-  --color-mw-muted-dark:   #202020;
-  --color-mw-black:        #010313;
-  --color-mw-blue:         #2237F1;
-  --color-mw-navy:         #1A2DD1;
-  --color-mw-green:        #C7FA50;
-  --color-mw-danger:       #CC1838;
-  --color-mw-positive:     #417E0B;
-  --color-mw-amber:        #B45309;
-  --color-mw-amber-bright: #F59E0B;
+  --color-background:         var(--background);
+  --color-foreground:         var(--foreground);
+  --color-card:               var(--card);
+  --color-card-foreground:    var(--card-foreground);
+  --color-popover:            var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 
-  /* ------------------------------------------------------------------ */
-  /* SEMANTIC TOKENS — dark (default)                                    */
-  /* ------------------------------------------------------------------ */
-  --color-background:         var(--mw-black);
-  --color-foreground:         var(--mw-white);
-  --color-card:               var(--mw-muted-dark);
-  --color-card-foreground:    var(--mw-white);
-  --color-popover:            var(--mw-muted-dark);
-  --color-popover-foreground: var(--mw-white);
+  --color-primary:            var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
 
-  /* Primary = blue highlight */
-  --color-primary:            var(--mw-blue);
-  --color-primary-foreground: var(--mw-white);
+  --color-secondary:            var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted:                var(--muted);
+  --color-muted-foreground:     var(--muted-foreground);
 
-  /* Secondary / muted surfaces */
-  --color-secondary:            var(--mw-muted-dark);
-  --color-secondary-foreground: var(--mw-white);
-  --color-muted:                var(--mw-muted-dark);
-  --color-muted-foreground:     var(--mw-medium-gray);
+  --color-accent:            var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
 
-  /* Accent = blue (same as primary for this palette) */
-  --color-accent:            var(--mw-blue);
-  --color-accent-foreground: var(--mw-white);
+  --color-destructive:            var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
 
-  /* Destructive */
-  --color-destructive:            var(--mw-danger);
-  --color-destructive-foreground: var(--mw-white);
-
-  /* Borders / inputs */
-  --color-border: #2A2B3D;
-  --color-input:  #2A2B3D;
-  --color-ring:   var(--mw-blue);
+  --color-border: var(--border);
+  --color-input:  var(--input);
+  --color-ring:   var(--ring);
 
   /* Status */
-  --color-success:          var(--mw-positive);
-  --color-success-foreground: var(--mw-white);
-  --color-success-muted:    #1C2E0A;
-  --color-success-strong:   #5EAD0F;
-  --color-warning:          var(--mw-amber-bright);
-  --color-warning-foreground: var(--mw-black);
-  --color-warning-muted:    #2A1F06;
-  --color-warning-strong:   var(--mw-amber-bright);
-  --color-danger:           var(--mw-danger);
-  --color-danger-foreground: var(--mw-white);
-  --color-danger-muted:     #2A080E;
-  --color-danger-strong:    #E8344D;
-  --color-info:             var(--mw-blue);
-  --color-info-foreground:  var(--mw-white);
-  --color-info-muted:       #0D1340;
+  --color-success:            var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted:      var(--success-muted);
+  --color-success-strong:     var(--success-strong);
+  --color-warning:            var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted:      var(--warning-muted);
+  --color-warning-strong:     var(--warning-strong);
+  --color-danger:             var(--danger);
+  --color-danger-foreground:  var(--danger-foreground);
+  --color-danger-muted:       var(--danger-muted);
+  --color-danger-strong:      var(--danger-strong);
+  --color-info:               var(--info);
+  --color-info-foreground:    var(--info-foreground);
+  --color-info-muted:         var(--info-muted);
 
-  /* Attention accent (green in dark mode) */
-  --color-attention:        var(--mw-green);
+  /* Attention accent (hue-shifts across modes) */
+  --color-attention:        var(--attention);
 
   /* Charts */
-  --color-chart-1: var(--mw-blue);
-  --color-chart-2: var(--mw-green);
-  --color-chart-3: var(--mw-amber-bright);
-  --color-chart-4: var(--mw-danger);
-  --color-chart-5: var(--mw-light-gray);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
   /* Square corners everywhere — status pills are the only exception */
   --radius: 0rem;
@@ -99,41 +77,157 @@
   --radius-3xl: 0rem;
   --radius-4xl: 0rem;
 
-  /* Elevation */
-  --shadow-elev-1: 0 2px 6px rgba(1,3,19,.08);
+  /* Elevation — reserved for floating surfaces only */
+  --shadow-elev-1: 0 2px 6px rgba(1,3,19,.06);
   --shadow-elev-2: 0 4px 8px rgba(1,3,19,.08);
-  --shadow-elev-3: 0 4px 8px rgba(1,3,19,.08);
-  --shadow-elev-4: 0 16px 32px rgba(1,3,19,.12);
+  --shadow-elev-3: 0 8px 16px rgba(1,3,19,.10);
+  --shadow-elev-4: 0 16px 32px rgba(1,3,19,.14);
 
-  /* Sidebar — near-black with a dark-blue undertone */
-  --color-sidebar:                    #0B0D1F;
-  --color-sidebar-foreground:         var(--mw-light-gray);
-  --color-sidebar-primary:            var(--mw-blue);
-  --color-sidebar-primary-foreground: var(--mw-white);
-  --color-sidebar-accent:             #141627;
-  --color-sidebar-accent-foreground:  var(--mw-white);
-  --color-sidebar-border:             #1C1E35;
-  --color-sidebar-ring:               var(--mw-blue);
+  /* Sidebar */
+  --color-sidebar:                    var(--sidebar);
+  --color-sidebar-foreground:         var(--sidebar-foreground);
+  --color-sidebar-primary:            var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent:             var(--sidebar-accent);
+  --color-sidebar-accent-foreground:  var(--sidebar-accent-foreground);
+  --color-sidebar-border:             var(--sidebar-border);
+  --color-sidebar-ring:               var(--sidebar-ring);
 }
 
-/* CSS custom properties that the @theme inline references */
-:root {
+/* ==================================================================== */
+/* LIGHT — default                                                       */
+/* ==================================================================== */
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  --background:         #F6F7FE; /* White — page bg AND default card fill */
+  --foreground:         #010313; /* Black */
+  --card:               #F6F7FE; /* white card fill, hairline border separates */
+  --card-foreground:    #010313;
+  --popover:            #F6F7FE;
+  --popover-foreground: #010313;
+
+  --primary:            #2237F1; /* Blue */
+  --primary-foreground: #F6F7FE;
+
+  /* Recessed surfaces (sidebar, table headers, kanban beds, filter bars, QB strip) */
+  --secondary:            #E8E9F4; /* Level1 — Muted Light */
+  --secondary-foreground: #010313;
+  --muted:                #E8E9F4; /* Level1 */
+  --muted-foreground:     #666666; /* more-muted — inverts from dark */
+
+  --accent:            #2237F1;
+  --accent-foreground: #F6F7FE;
+
+  --destructive:            #CC1838;
+  --destructive-foreground: #F6F7FE;
+
+  --border: #D3D6E8; /* hairline visible on white */
+  --input:  #D3D6E8;
+  --ring:   #2237F1;
+
+  /* Status — text/border tokens pass AA on their ~7% tints */
+  --success:            #417E0B;
+  --success-foreground: #F6F7FE;
+  --success-muted:      #EAF1E0; /* ~7% green tint */
+  --success-strong:     #366B08;
+  --warning:            #B45309; /* NOT #F59E0B in light */
+  --warning-foreground: #F6F7FE;
+  --warning-muted:      #F6ECDD; /* ~7% amber tint */
+  --warning-strong:     #92420A;
+  --danger:             #CC1838;
+  --danger-foreground:  #F6F7FE;
+  --danger-muted:       #F9E4E8; /* ~7% red tint */
+  --danger-strong:      #B01530;
+  --info:               #2237F1;
+  --info-foreground:    #F6F7FE;
+  --info-muted:         #E4E8FD; /* ~7% blue tint */
+
+  /* Attention = Blue in light (NOT green) */
+  --attention:          #2237F1;
+
+  --chart-1: #2237F1;
+  --chart-2: #417E0B;
+  --chart-3: #B45309;
+  --chart-4: #CC1838;
+  --chart-5: #949494;
+
+  --sidebar:                    #E8E9F4; /* recessed level1 */
+  --sidebar-foreground:         #666666;
+  --sidebar-primary:            #2237F1;
+  --sidebar-primary-foreground: #F6F7FE;
+  --sidebar-accent:             #DCDEEE; /* hover / active bed */
+  --sidebar-accent-foreground:  #010313;
+  --sidebar-border:             #D3D6E8;
+  --sidebar-ring:               #2237F1;
+}
+
+/* ==================================================================== */
+/* DARK — one attribute away                                             */
+/* ==================================================================== */
+.dark,
+[data-theme='dark'] {
   color-scheme: dark;
 
-  --mw-white:        #F6F7FE;
-  --mw-muted-light:  #E8E9F4;
-  --mw-light-gray:   #A9A9A9;
-  --mw-medium-gray:  #949494;
-  --mw-dark-gray:    #666666;
-  --mw-muted-dark:   #202020;
-  --mw-black:        #010313;
-  --mw-blue:         #2237F1;
-  --mw-navy:         #1A2DD1;
-  --mw-green:        #C7FA50;
-  --mw-danger:       #CC1838;
-  --mw-positive:     #417E0B;
-  --mw-amber:        #B45309;
-  --mw-amber-bright: #F59E0B;
+  --background:         #010313;
+  --foreground:         #F6F7FE;
+  --card:               #202020;
+  --card-foreground:    #F6F7FE;
+  --popover:            #202020;
+  --popover-foreground: #F6F7FE;
+
+  --primary:            #2237F1;
+  --primary-foreground: #F6F7FE;
+
+  --secondary:            #202020;
+  --secondary-foreground: #F6F7FE;
+  --muted:                #202020;
+  --muted-foreground:     #949494;
+
+  --accent:            #2237F1;
+  --accent-foreground: #F6F7FE;
+
+  --destructive:            #CC1838;
+  --destructive-foreground: #F6F7FE;
+
+  --border: #2A2B3D;
+  --input:  #2A2B3D;
+  --ring:   #2237F1;
+
+  --success:            #417E0B;
+  --success-foreground: #F6F7FE;
+  --success-muted:      #1C2E0A;
+  --success-strong:     #5EAD0F;
+  --warning:            #F59E0B;
+  --warning-foreground: #010313;
+  --warning-muted:      #2A1F06;
+  --warning-strong:     #F59E0B;
+  --danger:             #CC1838;
+  --danger-foreground:  #F6F7FE;
+  --danger-muted:       #2A080E;
+  --danger-strong:      #E8344D;
+  --info:               #2237F1;
+  --info-foreground:    #F6F7FE;
+  --info-muted:         #0D1340;
+
+  /* Attention = bright green in dark */
+  --attention:          #C7FA50;
+
+  --chart-1: #2237F1;
+  --chart-2: #C7FA50;
+  --chart-3: #F59E0B;
+  --chart-4: #CC1838;
+  --chart-5: #A9A9A9;
+
+  --sidebar:                    #0B0D1F;
+  --sidebar-foreground:         #A9A9A9;
+  --sidebar-primary:            #2237F1;
+  --sidebar-primary-foreground: #F6F7FE;
+  --sidebar-accent:             #141627;
+  --sidebar-accent-foreground:  #F6F7FE;
+  --sidebar-border:             #1C1E35;
+  --sidebar-ring:               #2237F1;
 }
 
 @layer base {

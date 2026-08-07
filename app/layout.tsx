@@ -16,8 +16,8 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  colorScheme: 'dark',
-  themeColor: '#010313',
+  colorScheme: 'light',
+  themeColor: '#F6F7FE',
 }
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`dark ${geistMono.variable}`} data-theme="dark">
+    <html lang="en" className={geistMono.variable} data-theme="light">
       <body className="bg-background font-sans antialiased">
         <AppShell>{children}</AppShell>
       </body>
