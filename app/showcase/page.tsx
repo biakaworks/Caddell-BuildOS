@@ -1,10 +1,5 @@
-import { Suspense } from "react"
-import { ShowcaseBuilder } from "@/components/buildos/showcase/showcase-builder"
+import { redirect } from "next/navigation"
 
 export default function ShowcasePage() {
-  return (
-    <Suspense fallback={null}>
-      <ShowcaseBuilder />
-    </Suspense>
-  )
+  redirect("/projects")
 }

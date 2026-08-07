@@ -1,5 +1,5 @@
-import { ProfileView } from "@/components/buildos/account/profile"
+import { redirect } from "next/navigation"
 
 export default function ProfilePage() {
-  return <ProfileView />
+  redirect("/settings")
 }

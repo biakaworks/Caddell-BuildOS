@@ -1,5 +1,5 @@
-import { PursuitsView } from "@/components/buildos/pursuits"
+import { redirect } from "next/navigation"
 
 export default function PursuitsPage() {
-  return <PursuitsView />
+  redirect("/pipeline")
 }

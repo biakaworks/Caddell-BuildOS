@@ -1,5 +1,5 @@
-import { RoadmapView } from "@/components/buildos/roadmap"
+import { redirect } from "next/navigation"
 
 export default function RoadmapPage() {
-  return <RoadmapView />
+  redirect("/")
 }

@@ -1,50 +1,23 @@
-import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Open_Sans, Geist_Mono, Oswald, Fraunces } from 'next/font/google'
+import { Geist_Mono } from 'next/font/google'
 import { AppShell } from '@/components/buildos/app-shell'
 import './globals.css'
 
-// Open Sans — UI / body. Oswald — bold condensed sans for large headings.
-const openSans = Open_Sans({ variable: '--font-open-sans', subsets: ['latin'] })
-const oswald = Oswald({ variable: '--font-oswald', subsets: ['latin'] })
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
-// Editorial serif — used ONLY for the client-facing Showcase output.
-const fraunces = Fraunces({
-  variable: '--font-display',
-  subsets: ['latin'],
-  axes: ['opsz'],
-})
+// TT Hoves is not available on Google Fonts — using system fallback per brand spec.
+// The CSS already specifies 'TT Hoves' first; if a licensed copy is loaded via a
+// custom @font-face, it will apply automatically.
+const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'BuildOS — Caddell Construction',
+  title: 'CG&M — Glazing Operations',
   description:
-    'BuildOS is Caddell Construction’s internal operating platform for pursuits, estimating, projects, knowledge, and leadership reporting.',
+    'Commercial Glass & Metal internal operations platform — estimates, fabrication, install scheduling, and dispatch in one place.',
   generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
 }
 
 export const viewport: Viewport = {
   colorScheme: 'light',
-  themeColor: '#691C32',
+  themeColor: '#F6F7FE',
 }
 
 export default function RootLayout({
@@ -53,13 +26,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`light ${openSans.variable} ${oswald.variable} ${geistMono.variable} ${fraunces.variable}`}
-    >
+    <html lang="en" className={geistMono.variable} data-theme="light">
       <body className="bg-background font-sans antialiased">
         <AppShell>{children}</AppShell>
-        {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )

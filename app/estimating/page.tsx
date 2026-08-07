@@ -1,5 +1,5 @@
-import { EstimatingView } from "@/components/buildos/estimating"
+import { redirect } from "next/navigation"
 
 export default function EstimatingPage() {
-  return <EstimatingView />
+  redirect("/bids")
 }

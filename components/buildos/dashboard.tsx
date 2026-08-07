@@ -1,348 +1,341 @@
 "use client"
 
 import Link from "next/link"
-import {
-  FileQuestion,
-  FileCheck2,
-  CalendarClock,
-  Target,
-  ShieldAlert,
-  ChevronRight,
-  ArrowRight,
-  TrendingUp,
-} from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { AlertTriangle, TrendingUp, Package, CalendarRange, ClipboardList, Zap } from "lucide-react"
+import { PROJECTS, FAB_ITEMS, INSTALL_EVENTS, BIDS, OPPORTUNITIES, TICKETS, formatCurrency } from "@/lib/data/fixtures"
+import { fmtDate } from "@/lib/format"
+import { PageContainer, StatusPill, healthTone, Meter, StatTile, SectionHeading, TrendDelta } from "./ui"
 import { cn } from "@/lib/utils"
-import {
-  KPIS,
-  ATTENTION_ITEMS,
-  ACTIVITY,
-  PURSUITS,
-  PURSUIT_STAGES,
-  formatCurrency,
-  type AttentionType,
-  type Kpi,
-} from "@/lib/mock-data"
-import { useApp } from "./app-context"
-import { Sparkline, TrendDelta, StatusPill, SectionHeading } from "./ui"
-import { PhaseBadge, PreviewBlock } from "./phase"
 
-const intentMap: Record<Kpi["intent"], { bar: string; spark: string }> = {
-  good: { bar: "bg-success", spark: "stroke-success" },
-  warn: { bar: "bg-warning", spark: "stroke-warning" },
-  bad: { bar: "bg-danger", spark: "stroke-danger" },
-  neutral: { bar: "bg-primary", spark: "stroke-primary" },
-}
+export function Dashboard() {
+  // ── Derived KPIs ──────────────────────────────────────────────────────────
+  const atRisk    = PROJECTS.filter((p) => p.healthStatus === "At Risk").length
+  const late      = PROJECTS.filter((p) => p.healthStatus === "Late").length
+  const activeJobs= PROJECTS.filter((p) => !["Estimate"].includes(p.phase)).length
+  const totalCV   = PROJECTS.reduce((s, p) => s + p.contractValue, 0)
+  const blocked   = FAB_ITEMS.filter((i) => i.blocked)
+  const openTickets = TICKETS.filter((t) => t.status !== "Resolved").length
+  const crewConflicts = INSTALL_EVENTS.filter((e) => e.conflictWith).length / 2
 
-export function KpiTiles() {
-  return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
-      {KPIS.map((kpi) => {
-        const c = intentMap[kpi.intent]
-        return (
-          <Card
-            key={kpi.id}
-            className="group relative gap-0 overflow-hidden p-4 transition-shadow hover:shadow-md"
-          >
-            <span className={cn("absolute inset-x-0 top-0 h-0.5", c.bar)} />
-            <p className="text-xs font-medium text-muted-foreground">{kpi.label}</p>
-            <div className="mt-2 flex items-end justify-between gap-2">
-              <span className="font-heading text-2xl font-semibold tracking-tight tabular-nums text-foreground">
-                {kpi.value}
-              </span>
-              <Sparkline data={kpi.spark} strokeClass={c.spark} width={64} height={24} />
-            </div>
-            <div className="mt-2 flex items-center gap-1.5">
-              <TrendDelta value={kpi.delta} goodWhenUp={kpi.goodWhenUp} />
-              <span className="truncate text-[11px] text-muted-foreground">{kpi.deltaLabel}</span>
-            </div>
-          </Card>
-        )
-      })}
-    </div>
-  )
-}
+  // Summer shutdown jobs — hard-deadline constraint
+  const summerJobs = PROJECTS.filter((p) => p.hardDeadlineWindow)
 
-const attentionIcon: Record<AttentionType, typeof FileQuestion> = {
-  rfi: FileQuestion,
-  submittal: FileCheck2,
-  schedule: CalendarClock,
-  pursuit: Target,
-  safety: ShieldAlert,
-}
-
-export function NeedsAttention() {
-  const { unit } = useApp()
-  const items = ATTENTION_ITEMS.filter((i) => unit === "All" || i.unit === unit)
-
-  return (
-    <Card className="gap-0 overflow-hidden p-0">
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <div className="flex items-center gap-2">
-          <h2 className="font-heading text-base font-semibold tracking-tight text-foreground">
-            Needs Attention
-          </h2>
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-muted px-1.5 text-xs font-semibold text-danger">
-            {items.length}
-          </span>
-        </div>
-        <Link href="/projects" className="text-xs font-medium text-primary hover:underline">
-          View all
-        </Link>
-      </div>
-
-      {items.length === 0 ? (
-        <EmptyState
-          title="Nothing needs attention"
-          body={`No overdue or at-risk items for ${unit === "All" ? "any unit" : unit}.`}
-        />
-      ) : (
-        <ul className="divide-y divide-border">
-          {items.map((item) => {
-            const Icon = attentionIcon[item.type]
-            const critical = item.severity === "critical"
-            return (
-              <li key={item.id}>
-                <Link
-                  href={item.href}
-                  className="flex min-h-11 items-start gap-3 p-4 transition-colors hover:bg-accent/50"
-                >
-                  <span
-                    className={cn(
-                      "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg",
-                      critical ? "bg-danger-muted text-danger-strong" : "bg-warning-muted text-warning-strong",
-                    )}
-                  >
-                    <Icon className="size-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{item.title}</p>
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                      {item.project} · {item.meta}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 flex-col items-end gap-1">
-                    <StatusPill tone={critical ? "danger" : "warning"}>
-                      {critical ? "Critical" : "At risk"}
-                    </StatusPill>
-                    <span className="text-[11px] text-muted-foreground">{item.age}</span>
-                  </div>
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      )}
-    </Card>
-  )
-}
-
-export function PipelineMini() {
-  const { unit } = useApp()
-  const stages = PURSUIT_STAGES.filter((s) => s !== "Won" && s !== "Lost")
-  const active = PURSUITS.filter(
-    (p) => (unit === "All" || p.unit === unit) && p.stage !== "Won" && p.stage !== "Lost",
-  )
-  const byStage = stages.map((stage) => {
-    const items = active.filter((p) => p.stage === stage)
-    return {
-      stage,
-      count: items.length,
-      value: items.reduce((sum, p) => sum + p.value, 0),
-    }
+  // Bids due within 7 days (relative to demo date 2026-08-07)
+  const demoNow = new Date("2026-08-07")
+  const bidsUrgent = BIDS.filter((b) => {
+    const due = new Date(b.bidDueDate)
+    return due >= demoNow && due <= new Date(demoNow.getTime() + 7 * 86_400_000)
   })
-  const maxCount = Math.max(1, ...byStage.map((s) => s.count))
-  const totalValue = active.reduce((sum, p) => sum + p.value, 0)
+
+  const openPipeline = OPPORTUNITIES
+    .filter((o) => !["Won","Lost"].includes(o.stage))
+    .reduce((s, o) => s + o.value, 0)
 
   return (
-    <Card className="gap-0 p-0">
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <SectionHeading title="Pursuit Pipeline" />
-        <Link href="/pursuits" className="flex items-center gap-1 text-xs font-medium text-primary hover:underline">
-          Open board <ChevronRight className="size-3.5" />
-        </Link>
-      </div>
-      <div className="p-4">
-        <div className="mb-4 flex items-baseline gap-2">
-          <span className="font-heading text-xl font-semibold tabular-nums text-foreground">
-            {formatCurrency(totalValue)}
-          </span>
-          <span className="text-xs text-muted-foreground">weighted across {active.length} active pursuits</span>
-        </div>
-        <div className="space-y-3">
-          {byStage.map((s) => (
-            <div key={s.stage} className="flex items-center gap-3">
-              <span className="w-24 shrink-0 text-sm text-muted-foreground">{s.stage}</span>
-              <div className="h-7 flex-1 overflow-hidden rounded-md bg-muted">
-                <div
-                  className="flex h-full items-center justify-end rounded-md bg-primary/85 px-2 transition-all duration-500"
-                  style={{ width: `${Math.max(12, (s.count / maxCount) * 100)}%` }}
-                >
-                  <span className="text-xs font-semibold text-primary-foreground tabular-nums">{s.count}</span>
-                </div>
-              </div>
-              <span className="w-14 shrink-0 text-right text-xs text-muted-foreground tabular-nums">
-                {s.value > 0 ? formatCurrency(s.value) : "—"}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Card>
-  )
-}
-
-export function ActivityFeed() {
-  const { unit } = useApp()
-  const items = ACTIVITY.filter((a) => unit === "All" || a.unit === unit)
-  return (
-    <Card className="gap-0 p-0">
-      <div className="border-b border-border p-4">
-        <SectionHeading title="Recent Activity" />
-      </div>
-      <ul className="p-2">
-        {items.map((a) => (
-          <li key={a.id} className="flex items-start gap-3 rounded-lg p-2.5">
-            <Avatar className="size-8">
-              <AvatarFallback
-                className={cn(
-                  "text-[11px] font-semibold",
-                  a.initials === "AI" ? "bg-primary/10 text-primary" : "bg-secondary text-secondary-foreground",
-                )}
-              >
-                {a.initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm leading-snug text-foreground">
-                <span className="font-medium">{a.actor}</span>{" "}
-                <span className="text-muted-foreground">{a.action}</span>{" "}
-                <span className="font-medium">{a.target}</span>
-              </p>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">{a.time}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Card>
-  )
-}
-
-export function EmptyState({
-  title,
-  body,
-  action,
-}: {
-  title: string
-  body: string
-  action?: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-2 px-6 py-12 text-center">
-      <div className="flex size-10 items-center justify-center rounded-full bg-success-muted text-success">
-        <FileCheck2 className="size-5" />
-      </div>
-      <p className="font-medium text-foreground">{title}</p>
-      <p className="max-w-xs text-sm text-muted-foreground">{body}</p>
-      {action}
-    </div>
-  )
-}
-
-const PREDICTIONS = [
-  {
-    project: "Riverside Medical Tower",
-    signal: "Schedule slip risk",
-    detail: "Steel delivery variance trending toward a 3-week critical-path impact.",
-    confidence: "High",
-    tone: "bad" as const,
-  },
-  {
-    project: "Gulf Logistics Hub",
-    signal: "Margin erosion",
-    detail: "Change-order velocity outpacing approvals; forecast fee down 1.2 pts.",
-    confidence: "Medium",
-    tone: "warn" as const,
-  },
-  {
-    project: "Northgate Mixed-Use",
-    signal: "Early completion",
-    detail: "Concrete pace +8% vs. plan — likely 2 weeks ahead at topping out.",
-    confidence: "Medium",
-    tone: "good" as const,
-  },
-]
-
-const predictionTone: Record<"good" | "warn" | "bad", string> = {
-  good: "bg-success-muted text-success-strong",
-  warn: "bg-warning-muted text-warning-strong",
-  bad: "bg-danger-muted text-danger-strong",
-}
-
-export function PredictiveInsights() {
-  const { unit } = useApp()
-  void unit
-  return (
-    <Card className="gap-0 p-0">
-      <div className="flex items-center justify-between border-b border-border p-4">
-        <div className="flex items-center gap-2">
-          <SectionHeading title="Predictive Insights" />
-          <PhaseBadge phase={3} />
-        </div>
-        <span className="text-xs text-muted-foreground">Forecasted from portfolio signals</span>
-      </div>
-      <PreviewBlock phase={3} ribbon={false} className="border-0 p-2 ring-0">
-        <ul className="divide-y divide-border">
-          {PREDICTIONS.map((p) => (
-            <li key={p.project} className="flex items-start gap-3 rounded-lg p-2.5">
-              <span className={cn("mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg", predictionTone[p.tone])}>
-                <TrendingUp className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">
-                  {p.signal}
-                  <span className="ml-1.5 font-normal text-muted-foreground">· {p.project}</span>
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{p.detail}</p>
-              </div>
-              <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                {p.confidence}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </PreviewBlock>
-    </Card>
-  )
-}
-
-export function PromoStrip() {
-  const { openAsk } = useApp()
-  return (
-    <Card className="relative flex flex-col items-start justify-between gap-4 overflow-hidden border-t-[3px] border-t-gold border-primary/20 bg-primary/[0.04] p-5 pl-7 sm:flex-row sm:items-center">
-      {/* Gold ribbon left edge with a chevron point — echo of the Caddell gold ribbon */}
-      <span
-        aria-hidden="true"
-        className="absolute inset-y-0 left-0 w-3 bg-gold"
-        style={{ clipPath: "polygon(0 0, 100% 0, 40% 50%, 100% 100%, 0 100%)" }}
-      />
-      <div>
-        <h3 className="font-heading text-sm font-semibold text-foreground">
-          Start a pursuit from history, not a blank page
-        </h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Ask BuildOS to surface comparable past work, win themes, and subcontractor performance.
+    <PageContainer>
+      {/* ── Header ── */}
+      <header className="border-b border-border pb-6">
+        <p className="text-overline text-muted-foreground/50 mb-1">Commercial Glass &amp; Metal</p>
+        <h1 className="text-3xl text-foreground" style={{ letterSpacing: "-0.03em" }}>
+          Pulse Dashboard
+        </h1>
+        <p className="mt-1.5 text-sm text-muted-foreground">
+          {fmtDate("2026-08-07", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          <span className="mx-2 text-muted-foreground/30">·</span>
+          {activeJobs} active jobs · {formatCurrency(totalCV)} portfolio
         </p>
+      </header>
+
+      {/* ── Alerts strip ── */}
+      {(atRisk + late + blocked.length + openTickets + crewConflicts > 0) && (
+        <section className="mt-5 space-y-2" aria-label="Active alerts">
+          {late > 0 && (
+            <Alert tone="danger">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span><strong className="text-danger-strong">{late} job{late > 1 ? "s" : ""}</strong> are past their install window.</span>
+            </Alert>
+          )}
+          {atRisk > 0 && (
+            <Alert tone="warning">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span><strong>{atRisk} job{atRisk > 1 ? "s" : ""} at risk</strong> — fabrication or vendor delays.</span>
+            </Alert>
+          )}
+          {blocked.length > 0 && (
+            <Alert tone="danger">
+              <Package className="size-4 shrink-0" />
+              <span>
+                <strong className="text-danger-strong">{blocked.length} fab item{blocked.length > 1 ? "s" : ""} blocked</strong>
+                {" — "}{blocked.map((b) => b.blockReason).filter(Boolean).slice(0, 1).join(", ")}.{" "}
+                <Link href="/fabrication" className="underline underline-offset-2 text-danger-strong hover:text-danger">View fabrication</Link>
+              </span>
+            </Alert>
+          )}
+          {crewConflicts > 0 && (
+            <Alert tone="warning">
+              <CalendarRange className="size-4 shrink-0" />
+              <span>
+                <strong>{crewConflicts} crew scheduling conflict{crewConflicts > 1 ? "s" : ""}</strong> detected.{" "}
+                <Link href="/schedule" className="underline underline-offset-2 text-warning hover:text-warning-strong">Review schedule</Link>
+              </span>
+            </Alert>
+          )}
+          {openTickets > 0 && (
+            <Alert tone="warning">
+              <Zap className="size-4 shrink-0" />
+              <span>
+                <strong>{openTickets} emergency dispatch {openTickets > 1 ? "tickets" : "ticket"}</strong> open.{" "}
+                <Link href="/dispatch" className="underline underline-offset-2 text-warning hover:text-warning-strong">View dispatch</Link>
+              </span>
+            </Alert>
+          )}
+        </section>
+      )}
+
+      {/* ── Top KPIs ── */}
+      <section className="mt-6 grid grid-cols-2 gap-px bg-border sm:grid-cols-3 lg:grid-cols-6" aria-label="Key metrics">
+        <StatTile label="Active Jobs"     value={activeJobs}            tone="neutral" />
+        <StatTile label="At Risk / Late"  value={`${atRisk + late}`}    tone={atRisk + late > 0 ? "danger" : "success"}
+                  sub={atRisk + late > 0 ? "Needs attention" : "All on schedule"} />
+        <StatTile label="Fab Blocked"     value={blocked.length}        tone={blocked.length > 0 ? "danger" : "success"}
+                  sub={blocked.length > 0 ? "Action required" : "Shop clear"} />
+        <StatTile label="Crew Conflicts"  value={crewConflicts}         tone={crewConflicts > 0 ? "warning" : "success"} />
+        <StatTile label="Open Bids"       value={BIDS.filter((b) => !["Awarded","Lost"].includes(b.status)).length} tone="info" />
+        <StatTile label="Pipeline"        value={formatCurrency(openPipeline)} tone="info" />
+      </section>
+
+      {/* ── Main grid ── */}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
+
+        {/* Left column */}
+        <div className="space-y-6">
+
+          {/* Summer deadline watch */}
+          {summerJobs.length > 0 && (
+            <section className="border border-warning/30 bg-warning-muted">
+              <div className="flex items-center gap-2 border-b border-warning/20 px-4 py-3">
+                <CalendarRange className="size-4 text-warning" />
+                <SectionHeading title={`Summer Shutdown Watch — ${summerJobs.length} jobs`} />
+              </div>
+              <div className="divide-y divide-warning/10">
+                {summerJobs.map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/projects/${p.id}`}
+                    className="flex items-start gap-4 px-4 py-3 hover:bg-warning/5 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-foreground">{p.name}</p>
+                        <StatusPill tone={healthTone(p.healthStatus)} className="text-[10px]">
+                          {p.healthStatus}
+                        </StatusPill>
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">{p.city}, {p.state} · {p.hardDeadlineWindow}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs tabular-nums text-foreground">
+                        {fmtDate(p.installWindowStart, { month: "short", day: "numeric" })}–
+                        {fmtDate(p.installWindowEnd, { month: "short", day: "numeric" })}
+                      </p>
+                      <div className="mt-1">
+                        <Meter value={p.percentComplete} tone={healthTone(p.healthStatus)} className="w-24" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{p.percentComplete}%</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* At-risk jobs */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <SectionHeading title="Jobs Needing Attention" description="At risk and late, sorted by health" />
+              <Link href="/projects" className="text-xs text-primary hover:underline">All projects</Link>
+            </div>
+            <div className="divide-y divide-border">
+              {PROJECTS
+                .filter((p) => p.healthStatus !== "On Schedule")
+                .concat(PROJECTS.filter((p) => p.healthStatus === "On Schedule").slice(0, 3))
+                .slice(0, 8)
+                .map((p) => (
+                  <Link
+                    key={p.id}
+                    href={`/projects/${p.id}`}
+                    className="flex items-center gap-4 px-4 py-3 hover:bg-muted/20 transition-colors group"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-foreground group-hover:text-primary">{p.name}</p>
+                        <StatusPill tone={healthTone(p.healthStatus)} className="text-[10px]">
+                          {p.healthStatus}
+                        </StatusPill>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{p.phase} · {p.city}, {p.state}</p>
+                      {p.atRiskReason && (
+                        <p className="text-[11px] text-warning mt-0.5">{p.atRiskReason}</p>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs tabular-nums text-muted-foreground">{formatCurrency(p.contractValue)}</p>
+                      <div className="mt-1 w-20">
+                        <Meter value={p.percentComplete} tone={healthTone(p.healthStatus)} />
+                        <p className="text-[10px] text-muted-foreground mt-0.5 tabular-nums">{p.percentComplete}%</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </section>
+
+          {/* Fabrication blocked */}
+          {blocked.length > 0 && (
+            <section className="border border-danger/30 bg-danger-muted">
+              <div className="border-b border-danger/20 px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Package className="size-4 text-danger" />
+                  <SectionHeading title={`${blocked.length} Blocked Fab Items`} />
+                </div>
+                <Link href="/fabrication" className="text-xs text-danger hover:underline">View all</Link>
+              </div>
+              <div className="divide-y divide-danger/10">
+                {blocked.map((item) => (
+                  <div key={item.id} className="px-4 py-3">
+                    <p className="text-sm text-foreground">{item.description}</p>
+                    <p className="text-[11px] text-muted-foreground">{item.system} · {item.liteCount} lites</p>
+                    {item.blockReason && (
+                      <p className="mt-0.5 text-xs text-danger">{item.blockReason}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-5">
+
+          {/* Bids due this week */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="size-4 text-muted-foreground/50" />
+                <SectionHeading title="Bids Due This Week" />
+              </div>
+              <Link href="/bids" className="text-xs text-primary hover:underline">All bids</Link>
+            </div>
+            {bidsUrgent.length === 0 ? (
+              <div className="px-4 py-6 text-center text-sm text-muted-foreground">No bids due in next 7 days.</div>
+            ) : (
+              <div className="divide-y divide-border">
+                {bidsUrgent.map((bid) => (
+                  <Link
+                    key={bid.ref}
+                    href={`/bids/${bid.ref}`}
+                    className="flex items-start gap-3 px-4 py-3 hover:bg-muted/20 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground">{bid.projectName}</p>
+                      <p className="text-[11px] text-muted-foreground">{bid.gc} · {bid.estimator}</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs tabular-nums text-warning">
+                        {fmtDate(bid.bidDueDate, { month: "short", day: "numeric" })}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">{bid.estimatedHours}h est.</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Pipeline snapshot */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="size-4 text-muted-foreground/50" />
+                <SectionHeading title="Pipeline Snapshot" />
+              </div>
+              <Link href="/pipeline" className="text-xs text-primary hover:underline">Open board</Link>
+            </div>
+            <div className="divide-y divide-border">
+              {(["Lead","Qualified","Bidding","Proposal Out"] as const).map((stage) => {
+                const items = OPPORTUNITIES.filter((o) => o.stage === stage)
+                const val = items.reduce((s, o) => s + o.value, 0)
+                return (
+                  <div key={stage} className="flex items-center justify-between px-4 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{stage}</span>
+                      <span className="text-[10px] text-muted-foreground/50">{items.length}</span>
+                    </div>
+                    <span className="text-xs tabular-nums text-foreground">{formatCurrency(val)}</span>
+                  </div>
+                )
+              })}
+              <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
+                <span className="text-xs font-medium text-foreground">Total Open</span>
+                <span className="text-xs tabular-nums text-foreground">{formatCurrency(openPipeline)}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* Emergency dispatch status */}
+          <section className="border border-border bg-card">
+            <div className="border-b border-border px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="size-4 text-muted-foreground/50" />
+                <SectionHeading title="Emergency Dispatch" />
+              </div>
+              <Link href="/dispatch" className="text-xs text-primary hover:underline">All tickets</Link>
+            </div>
+            <div className="divide-y divide-border">
+              {TICKETS.filter((t) => t.status !== "Resolved").slice(0, 4).map((t) => (
+                <div key={t.id} className="flex items-start gap-3 px-4 py-3">
+                  <span className={cn(
+                    "mt-1.5 size-2 rounded-full shrink-0",
+                    t.status === "New" ? "bg-danger animate-pulse" : "bg-warning"
+                  )} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-foreground truncate">{t.location}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{t.opening}</p>
+                  </div>
+                  <StatusPill tone={t.status === "New" ? "danger" : "warning"} className="text-[10px] shrink-0">
+                    {t.status}
+                  </StatusPill>
+                </div>
+              ))}
+              {TICKETS.filter((t) => t.status !== "Resolved").length === 0 && (
+                <div className="px-4 py-5 text-center text-sm text-success">
+                  No open service calls.
+                </div>
+              )}
+            </div>
+          </section>
+
+        </div>
       </div>
-      <Button
-        onClick={() => openAsk("Draft win themes for the Coastal Data Center pursuit")}
-        variant="cta"
-        className="shrink-0"
-      >
-        Ask BuildOS <ArrowRight className="size-4" />
-      </Button>
-    </Card>
+    </PageContainer>
+  )
+}
+
+function Alert({
+  tone,
+  children,
+}: {
+  tone: "danger" | "warning"
+  children: React.ReactNode
+}) {
+  const styles = {
+    danger:  "border-danger/30 bg-danger-muted text-danger-strong",
+    warning: "border-warning/30 bg-warning-muted text-warning-strong",
+  }
+  return (
+    <div className={cn("flex items-start gap-2.5 border px-4 py-3 text-sm", styles[tone])}>
+      {children}
+    </div>
   )
 }

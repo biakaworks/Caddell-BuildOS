@@ -1,0 +1,865 @@
+// Demo data for the CG&M sales prototype.
+// Project names, cities, and service lines are REAL, sourced from
+// commercialglassandmetal.com. Dollar values, dates, percentages, GC
+// assignments, contact names, and all event history are ILLUSTRATIVE
+// and were invented for demonstration purposes only.
+
+import type {
+  Project,
+  FabItem,
+  InstallEvent,
+  Bid,
+  Opportunity,
+  Contact,
+  Ticket,
+  Document,
+  ActivityEvent,
+} from '@/lib/types'
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+export const formatCurrency = (value: number, compact = true): string =>
+  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    notation: compact ? 'compact' : 'standard',
+    maximumFractionDigits: compact ? 1 : 0,
+  }).format(value)
+
+// ---------------------------------------------------------------------------
+// Projects
+// ---------------------------------------------------------------------------
+export const PROJECTS: Project[] = [
+  // THE DEMO SPINE — Bentonville High School
+  {
+    id: 'bentonville-hs',
+    name: 'Bentonville High School',
+    city: 'Bentonville',
+    state: 'AR',
+    sector: 'Education',
+    gc: 'Crossland Construction',
+    contractValue: 1_840_000,
+    phase: 'Fabrication',
+    percentComplete: 60,
+    installWindowStart: '2027-06-01',
+    installWindowEnd: '2027-08-07',
+    hardDeadlineWindow: 'Summer 2027 shutdown — school opens Aug 11',
+    healthStatus: 'At Risk',
+    atRiskReason: 'IGU #B-214 failed seal inspection — re-order in progress, 2-week lead',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 148, status: 'In Progress', notes: 'Main entry atrium + east facade' },
+      { type: 'Storefront', liteCount: 64, status: 'In Progress', notes: 'Corridor glazing, 3 buildings' },
+      { type: 'Entrances', liteCount: 12, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'pittsburg-state',
+    name: 'Pittsburg State School of Business',
+    city: 'Pittsburg',
+    state: 'KS',
+    sector: 'Education',
+    gc: 'BMS CAT',
+    contractValue: 2_320_000,
+    phase: 'Install',
+    percentComplete: 78,
+    installWindowStart: '2026-09-08',
+    installWindowEnd: '2026-11-15',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 210, status: 'In Progress' },
+      { type: 'Entrances', liteCount: 8, status: 'Complete' },
+      { type: 'Operators', liteCount: 6, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'ua-hper',
+    name: 'University of Arkansas HPER Building',
+    city: 'Fayetteville',
+    state: 'AR',
+    sector: 'Education',
+    gc: 'Nabholz Construction',
+    contractValue: 980_000,
+    phase: 'Punch',
+    percentComplete: 96,
+    installWindowStart: '2026-05-12',
+    installWindowEnd: '2026-07-18',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 88, status: 'Complete' },
+      { type: 'Entrances', liteCount: 10, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'galena-hs',
+    name: 'Galena High School',
+    city: 'Galena',
+    state: 'KS',
+    sector: 'Education',
+    gc: 'Dillard Smith Construction',
+    contractValue: 610_000,
+    phase: 'Shop Drawings',
+    percentComplete: 22,
+    installWindowStart: '2027-06-07',
+    installWindowEnd: '2027-07-25',
+    hardDeadlineWindow: 'Summer 2027 shutdown',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 56, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 6, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'joplin-hs',
+    name: 'Joplin High School',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Education',
+    gc: 'JE Dunn Construction',
+    contractValue: 3_100_000,
+    phase: 'Fabrication',
+    percentComplete: 44,
+    installWindowStart: '2027-06-01',
+    installWindowEnd: '2027-08-07',
+    hardDeadlineWindow: 'Summer 2027 shutdown — hard deadline',
+    healthStatus: 'At Risk',
+    atRiskReason: 'Extrusion order delayed by vendor — tracking 3-week slip against fabrication plan',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 320, status: 'In Progress' },
+      { type: 'Storefront', liteCount: 94, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 18, status: 'Not Started' },
+      { type: 'Operators', liteCount: 12, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'webb-city-hs',
+    name: 'Webb City High School',
+    city: 'Webb City',
+    state: 'MO',
+    sector: 'Education',
+    gc: 'R&R Engineers',
+    contractValue: 720_000,
+    phase: 'Submittal',
+    percentComplete: 12,
+    installWindowStart: '2027-06-14',
+    installWindowEnd: '2027-08-01',
+    hardDeadlineWindow: 'Summer 2027 shutdown',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 72, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 8, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'dover-hill-elementary',
+    name: 'Dover Hill Elementary',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Education',
+    gc: 'Witte Brothers Construction',
+    contractValue: 290_000,
+    phase: 'Install',
+    percentComplete: 88,
+    installWindowStart: '2026-07-07',
+    installWindowEnd: '2026-08-01',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 34, status: 'Complete' },
+      { type: 'Entrances', liteCount: 4, status: 'In Progress' },
+    ],
+  },
+  {
+    id: 'springdale-library',
+    name: 'Springdale Library',
+    city: 'Springdale',
+    state: 'AR',
+    sector: 'Hospitality / Civic',
+    gc: 'Baldwin & Shell Construction',
+    contractValue: 410_000,
+    phase: 'Fabrication',
+    percentComplete: 50,
+    installWindowStart: '2026-11-03',
+    installWindowEnd: '2026-12-12',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 76, status: 'In Progress' },
+      { type: 'Specialty Glass', liteCount: 14, status: 'Not Started', notes: 'Decorative fritted panels' },
+    ],
+  },
+  {
+    id: 'halfmoon-oral',
+    name: 'Halfmoon Oral Surgery',
+    city: 'Fayetteville',
+    state: 'AR',
+    sector: 'Healthcare',
+    gc: 'Flintco',
+    contractValue: 185_000,
+    phase: 'Punch',
+    percentComplete: 98,
+    installWindowStart: '2026-04-14',
+    installWindowEnd: '2026-05-30',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 28, status: 'Complete' },
+      { type: 'Entrances', liteCount: 4, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'davita-dialysis',
+    name: 'DaVita Dialysis',
+    city: 'Pittsburg',
+    state: 'KS',
+    sector: 'Healthcare',
+    gc: 'Nabholz Construction',
+    contractValue: 145_000,
+    phase: 'Install',
+    percentComplete: 72,
+    installWindowStart: '2026-08-18',
+    installWindowEnd: '2026-09-26',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 22, status: 'In Progress' },
+      { type: 'Entrances', liteCount: 2, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'mid-missouri-bank',
+    name: 'Mid-Missouri Bank',
+    city: 'Webb City',
+    state: 'MO',
+    sector: 'Commercial',
+    gc: 'BTL Construction',
+    contractValue: 380_000,
+    phase: 'Shop Drawings',
+    percentComplete: 30,
+    installWindowStart: '2026-10-06',
+    installWindowEnd: '2026-11-21',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 48, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 6, status: 'Not Started' },
+      { type: 'Specialty Glass', liteCount: 8, status: 'Not Started', notes: 'Drive-through canopy glazing' },
+    ],
+  },
+  {
+    id: 'fletcher-toyota',
+    name: 'Fletcher Toyota',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Commercial',
+    gc: 'Wilder Construction',
+    contractValue: 520_000,
+    phase: 'Fabrication',
+    percentComplete: 55,
+    installWindowStart: '2026-09-15',
+    installWindowEnd: '2026-10-31',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 96, status: 'In Progress' },
+      { type: 'Storefront', liteCount: 44, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'fletcher-nissan',
+    name: 'Fletcher Nissan',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Commercial',
+    gc: 'Wilder Construction',
+    contractValue: 470_000,
+    phase: 'Estimate',
+    percentComplete: 0,
+    installWindowStart: '2027-02-01',
+    installWindowEnd: '2027-03-28',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 88, status: 'Not Started' },
+      { type: 'Storefront', liteCount: 38, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'menards-joplin',
+    name: 'Menards',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Commercial',
+    gc: 'Menards Construction',
+    contractValue: 290_000,
+    phase: 'Install',
+    percentComplete: 91,
+    installWindowStart: '2026-07-21',
+    installWindowEnd: '2026-08-28',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 52, status: 'In Progress' },
+      { type: 'Entrances', liteCount: 6, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'blue-ember',
+    name: 'Blue Ember Smokehouse',
+    city: 'Rogers',
+    state: 'AR',
+    sector: 'Hospitality / Civic',
+    gc: 'Crossland Construction',
+    contractValue: 165_000,
+    phase: 'Fabrication',
+    percentComplete: 35,
+    installWindowStart: '2026-11-10',
+    installWindowEnd: '2026-12-05',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 30, status: 'In Progress' },
+      { type: 'Specialty Glass', liteCount: 6, status: 'Not Started', notes: 'Patio accordion wall' },
+    ],
+  },
+  {
+    id: 'image-studios',
+    name: 'IMAGE STUDIOS',
+    city: 'Rogers',
+    state: 'AR',
+    sector: 'Commercial',
+    gc: 'Flintco',
+    contractValue: 140_000,
+    phase: 'Submittal',
+    percentComplete: 18,
+    installWindowStart: '2027-01-12',
+    installWindowEnd: '2027-02-20',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 26, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 4, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'vista-21',
+    name: 'Vista 21',
+    city: 'Rogers',
+    state: 'AR',
+    sector: 'Commercial',
+    gc: 'Crossland Construction',
+    contractValue: 680_000,
+    phase: 'Shop Drawings',
+    percentComplete: 28,
+    installWindowStart: '2027-03-01',
+    installWindowEnd: '2027-05-15',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 124, status: 'Not Started' },
+      { type: 'Storefront', liteCount: 46, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 8, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'crossland-heavy',
+    name: 'Crossland Heavy',
+    city: 'Columbus',
+    state: 'KS',
+    sector: 'Industrial',
+    gc: 'Crossland Construction',
+    contractValue: 220_000,
+    phase: 'Install',
+    percentComplete: 82,
+    installWindowStart: '2026-08-04',
+    installWindowEnd: '2026-09-12',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 38, status: 'In Progress' },
+      { type: 'Glass Replacement', liteCount: 12, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'premier-truck',
+    name: 'Premier Truck',
+    city: 'Strafford',
+    state: 'MO',
+    sector: 'Industrial',
+    gc: 'BTL Construction',
+    contractValue: 175_000,
+    phase: 'Fabrication',
+    percentComplete: 48,
+    installWindowStart: '2026-10-13',
+    installWindowEnd: '2026-11-08',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 32, status: 'In Progress' },
+    ],
+  },
+  {
+    id: 'ferra-aerospace',
+    name: 'Ferra Aerospace',
+    city: 'Grove',
+    state: 'OK',
+    sector: 'Industrial',
+    gc: 'Manhattan Construction',
+    contractValue: 580_000,
+    phase: 'Submittal',
+    percentComplete: 14,
+    installWindowStart: '2027-01-20',
+    installWindowEnd: '2027-03-14',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 102, status: 'Not Started' },
+      { type: 'Specialty Glass', liteCount: 18, status: 'Not Started', notes: 'High-performance thermal units' },
+    ],
+  },
+  {
+    id: 'greenwood-springs',
+    name: 'Greenwood Springs Event Center',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Hospitality / Civic',
+    gc: 'Witte Brothers Construction',
+    contractValue: 820_000,
+    phase: 'Fabrication',
+    percentComplete: 62,
+    installWindowStart: '2026-10-27',
+    installWindowEnd: '2026-12-18',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 156, status: 'In Progress' },
+      { type: 'Specialty Glass', liteCount: 22, status: 'Not Started', notes: 'Ballroom skylight system' },
+      { type: 'Entrances', liteCount: 10, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'sugar-creek-hotel',
+    name: 'Sugar Creek Hotel',
+    city: 'Hinton',
+    state: 'OK',
+    sector: 'Hospitality / Civic',
+    gc: 'Manhattan Construction',
+    contractValue: 1_140_000,
+    phase: 'Shop Drawings',
+    percentComplete: 24,
+    installWindowStart: '2027-04-07',
+    installWindowEnd: '2027-06-30',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 186, status: 'Not Started' },
+      { type: 'Storefront', liteCount: 54, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 12, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'oz-trails',
+    name: 'OZ Trails',
+    city: 'Bella Vista',
+    state: 'AR',
+    sector: 'Hospitality / Civic',
+    gc: 'Crossland Construction',
+    contractValue: 210_000,
+    phase: 'Install',
+    percentComplete: 70,
+    installWindowStart: '2026-08-25',
+    installWindowEnd: '2026-10-04',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 40, status: 'In Progress' },
+    ],
+  },
+  {
+    id: 'millennium-fitness',
+    name: 'Millennium Family Fitness',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Hospitality / Civic',
+    gc: 'Wilder Construction',
+    contractValue: 340_000,
+    phase: 'Install',
+    percentComplete: 85,
+    installWindowStart: '2026-07-14',
+    installWindowEnd: '2026-08-22',
+    healthStatus: 'Late',
+    atRiskReason: 'Punch list 6 open items — lobby entrance sealant and hardware punch delayed by GC access',
+    systems: [
+      { type: 'Storefront', liteCount: 58, status: 'In Progress' },
+      { type: 'Entrances', liteCount: 8, status: 'In Progress' },
+    ],
+  },
+  {
+    id: 'cornell-arts',
+    name: 'Cornell Arts & Entertainment Complex',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Hospitality / Civic',
+    gc: 'JE Dunn Construction',
+    contractValue: 1_560_000,
+    phase: 'Shop Drawings',
+    percentComplete: 34,
+    installWindowStart: '2027-05-01',
+    installWindowEnd: '2027-07-15',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 240, status: 'Not Started' },
+      { type: 'Specialty Glass', liteCount: 32, status: 'Not Started', notes: 'Lobby skylights + art-glass panels' },
+      { type: 'Entrances', liteCount: 14, status: 'Not Started' },
+      { type: 'Operators', liteCount: 8, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'walmart-aviation',
+    name: 'Walmart Aviation',
+    city: 'Rogers',
+    state: 'AR',
+    sector: 'Commercial',
+    gc: 'Nabholz Construction',
+    contractValue: 870_000,
+    phase: 'Fabrication',
+    percentComplete: 42,
+    installWindowStart: '2026-11-17',
+    installWindowEnd: '2027-01-09',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 164, status: 'In Progress' },
+      { type: 'Storefront', liteCount: 58, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'south-grand-lake',
+    name: 'South Grand Lake Airport',
+    city: 'Ketchum',
+    state: 'OK',
+    sector: 'Hospitality / Civic',
+    gc: 'Manhattan Construction',
+    contractValue: 640_000,
+    phase: 'Estimate',
+    percentComplete: 0,
+    installWindowStart: '2027-03-10',
+    installWindowEnd: '2027-05-31',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Curtain Wall', liteCount: 118, status: 'Not Started' },
+      { type: 'Storefront', liteCount: 42, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'irving-elementary',
+    name: 'Irving Elementary',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Education',
+    gc: 'Witte Brothers Construction',
+    contractValue: 195_000,
+    phase: 'Punch',
+    percentComplete: 97,
+    installWindowStart: '2026-06-02',
+    installWindowEnd: '2026-07-11',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 28, status: 'Complete' },
+      { type: 'Entrances', liteCount: 4, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'joplin-jdc',
+    name: 'Joplin Juvenile Detention Center',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Hospitality / Civic',
+    gc: 'JE Dunn Construction',
+    contractValue: 460_000,
+    phase: 'Fabrication',
+    percentComplete: 58,
+    installWindowStart: '2026-10-06',
+    installWindowEnd: '2026-11-14',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Specialty Glass', liteCount: 84, status: 'In Progress', notes: 'Security glazing — tempered & laminated' },
+      { type: 'Entrances', liteCount: 6, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'la-z-boy',
+    name: 'La-Z-Boy',
+    city: 'Neosho',
+    state: 'MO',
+    sector: 'Commercial',
+    gc: 'BTL Construction',
+    contractValue: 230_000,
+    phase: 'Install',
+    percentComplete: 76,
+    installWindowStart: '2026-08-11',
+    installWindowEnd: '2026-09-20',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 44, status: 'In Progress' },
+      { type: 'Entrances', liteCount: 4, status: 'Complete' },
+    ],
+  },
+  {
+    id: 'empire-electric',
+    name: 'Empire Electric',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Industrial',
+    gc: 'Dillard Smith Construction',
+    contractValue: 160_000,
+    phase: 'Shop Drawings',
+    percentComplete: 20,
+    installWindowStart: '2026-11-03',
+    installWindowEnd: '2026-12-05',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 28, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'severs-trucking',
+    name: 'Severs Trucking',
+    city: 'Diamond',
+    state: 'MO',
+    sector: 'Industrial',
+    gc: 'Wilder Construction',
+    contractValue: 115_000,
+    phase: 'Estimate',
+    percentComplete: 0,
+    installWindowStart: '2027-01-05',
+    installWindowEnd: '2027-02-14',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Glass Replacement', liteCount: 18, status: 'Not Started' },
+      { type: 'Storefront', liteCount: 14, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'stpauls-umc',
+    name: "St. Paul's UMC",
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Hospitality / Civic',
+    gc: 'Witte Brothers Construction',
+    contractValue: 280_000,
+    phase: 'Submittal',
+    percentComplete: 15,
+    installWindowStart: '2027-02-01',
+    installWindowEnd: '2027-04-15',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Specialty Glass', liteCount: 48, status: 'Not Started', notes: 'Sanctuary stained + clear insulated units' },
+      { type: 'Entrances', liteCount: 4, status: 'Not Started' },
+    ],
+  },
+  {
+    id: 'center-mercy-park',
+    name: 'Center Mercy Park',
+    city: 'Joplin',
+    state: 'MO',
+    sector: 'Hospitality / Civic',
+    gc: 'R&R Engineers',
+    contractValue: 195_000,
+    phase: 'Shop Drawings',
+    percentComplete: 26,
+    installWindowStart: '2026-12-01',
+    installWindowEnd: '2027-01-28',
+    healthStatus: 'On Schedule',
+    systems: [
+      { type: 'Storefront', liteCount: 34, status: 'Not Started' },
+      { type: 'Entrances', liteCount: 6, status: 'Not Started' },
+    ],
+  },
+]
+
+// ---------------------------------------------------------------------------
+// Fabrication Items
+// ---------------------------------------------------------------------------
+export const FAB_ITEMS: FabItem[] = [
+  // Bentonville — the spine
+  { id: 'fab-b-001', projectId: 'bentonville-hs', description: 'CW Panel Row A, Lites 1–24', system: 'Curtain Wall', liteCount: 24, dueDate: '2026-10-12', stage: 'Glaze', blocked: false },
+  { id: 'fab-b-002', projectId: 'bentonville-hs', description: 'CW Panel Row A, Lites 25–48', system: 'Curtain Wall', liteCount: 24, dueDate: '2026-10-19', stage: 'Assemble', blocked: false },
+  { id: 'fab-b-003', projectId: 'bentonville-hs', description: 'CW Panel Row B, Lites 49–72', system: 'Curtain Wall', liteCount: 24, dueDate: '2026-10-26', stage: 'Machine', blocked: false },
+  { id: 'fab-b-214', projectId: 'bentonville-hs', description: 'IGU #B-214 — East Atrium Spandrel', system: 'Curtain Wall', liteCount: 1, dueDate: '2026-09-30', stage: 'Cut', blocked: true, blockReason: 'Failed seal inspection — re-order placed, vendor lead 14 days (PO #B-214-R)' },
+  { id: 'fab-b-004', projectId: 'bentonville-hs', description: 'Storefront Frames, Bldg A', system: 'Storefront', liteCount: 22, dueDate: '2026-11-02', stage: 'Cut', blocked: false },
+  { id: 'fab-b-005', projectId: 'bentonville-hs', description: 'Storefront Frames, Bldg B', system: 'Storefront', liteCount: 22, dueDate: '2026-11-09', stage: 'Cut', blocked: false },
+  // Joplin HS
+  { id: 'fab-j-001', projectId: 'joplin-hs', description: 'CW Extrusions Batch 1', system: 'Curtain Wall', liteCount: 80, dueDate: '2026-10-05', stage: 'Cut', blocked: true, blockReason: 'Waiting on vendor — PO #4417, extrusion delayed 3 weeks' },
+  { id: 'fab-j-002', projectId: 'joplin-hs', description: 'CW Extrusions Batch 2', system: 'Curtain Wall', liteCount: 80, dueDate: '2026-10-19', stage: 'Cut', blocked: false },
+  { id: 'fab-j-003', projectId: 'joplin-hs', description: 'CW Extrusions Batch 3', system: 'Curtain Wall', liteCount: 80, dueDate: '2026-11-02', stage: 'Cut', blocked: false },
+  // Pittsburg State
+  { id: 'fab-p-001', projectId: 'pittsburg-state', description: 'CW Panels Phase 2', system: 'Curtain Wall', liteCount: 60, dueDate: '2026-09-22', stage: 'Stage', blocked: false },
+  { id: 'fab-p-002', projectId: 'pittsburg-state', description: 'CW Panels Phase 3', system: 'Curtain Wall', liteCount: 60, dueDate: '2026-10-06', stage: 'Assemble', blocked: false },
+  // Greenwood Springs
+  { id: 'fab-gs-001', projectId: 'greenwood-springs', description: 'CW Main Lobby Panels', system: 'Curtain Wall', liteCount: 78, dueDate: '2026-10-10', stage: 'Glaze', blocked: false },
+  { id: 'fab-gs-002', projectId: 'greenwood-springs', description: 'CW Secondary Facade', system: 'Curtain Wall', liteCount: 78, dueDate: '2026-10-24', stage: 'Machine', blocked: false },
+  // Fletcher Toyota
+  { id: 'fab-ft-001', projectId: 'fletcher-toyota', description: 'CW Showroom Panels', system: 'Curtain Wall', liteCount: 48, dueDate: '2026-09-28', stage: 'Glaze', blocked: false },
+  { id: 'fab-ft-002', projectId: 'fletcher-toyota', description: 'CW Service Bay Clearstory', system: 'Curtain Wall', liteCount: 48, dueDate: '2026-10-12', stage: 'Assemble', blocked: false },
+  { id: 'fab-ft-003', projectId: 'fletcher-toyota', description: 'Storefront Frames', system: 'Storefront', liteCount: 44, dueDate: '2026-10-19', stage: 'Cut', blocked: false },
+  // Walmart Aviation
+  { id: 'fab-wa-001', projectId: 'walmart-aviation', description: 'CW Hangar Facade Batch 1', system: 'Curtain Wall', liteCount: 82, dueDate: '2026-11-14', stage: 'Machine', blocked: false },
+  { id: 'fab-wa-002', projectId: 'walmart-aviation', description: 'CW Hangar Facade Batch 2', system: 'Curtain Wall', liteCount: 82, dueDate: '2026-11-28', stage: 'Cut', blocked: false },
+  // Springdale Library
+  { id: 'fab-sl-001', projectId: 'springdale-library', description: 'CW Reading Room', system: 'Curtain Wall', liteCount: 76, dueDate: '2026-10-21', stage: 'Assemble', blocked: false },
+  // JDC
+  { id: 'fab-jdc-001', projectId: 'joplin-jdc', description: 'Security Glazing Package A', system: 'Specialty Glass', liteCount: 42, dueDate: '2026-09-29', stage: 'Stage', blocked: false },
+  { id: 'fab-jdc-002', projectId: 'joplin-jdc', description: 'Security Glazing Package B', system: 'Specialty Glass', liteCount: 42, dueDate: '2026-10-13', stage: 'Glaze', blocked: false },
+  // Premier Truck
+  { id: 'fab-pt-001', projectId: 'premier-truck', description: 'Storefront Frames', system: 'Storefront', liteCount: 32, dueDate: '2026-10-06', stage: 'Machine', blocked: false },
+  // Blue Ember
+  { id: 'fab-be-001', projectId: 'blue-ember', description: 'Storefront Frames + Patio Wall', system: 'Storefront', liteCount: 30, dueDate: '2026-10-28', stage: 'Cut', blocked: false },
+]
+
+// ---------------------------------------------------------------------------
+// Install Events
+// ---------------------------------------------------------------------------
+export const INSTALL_EVENTS: InstallEvent[] = [
+  // August 2026
+  { id: 'ie-001', projectId: 'ua-hper', crew: 'Crew A', city: 'Fayetteville', state: 'AR', startDate: '2026-08-03', endDate: '2026-08-14' },
+  { id: 'ie-002', projectId: 'irving-elementary', crew: 'Crew B', city: 'Joplin', state: 'MO', startDate: '2026-08-03', endDate: '2026-08-08' },
+  { id: 'ie-003', projectId: 'crossland-heavy', crew: 'Crew C', city: 'Columbus', state: 'KS', startDate: '2026-08-10', endDate: '2026-08-21' },
+  { id: 'ie-004', projectId: 'menards-joplin', crew: 'Crew B', city: 'Joplin', state: 'MO', startDate: '2026-08-10', endDate: '2026-08-21', conflictWith: 'ie-005' },
+  { id: 'ie-005', projectId: 'millennium-fitness', crew: 'Crew B', city: 'Joplin', state: 'MO', startDate: '2026-08-17', endDate: '2026-08-22', conflictWith: 'ie-004' },
+  // September 2026
+  { id: 'ie-006', projectId: 'pittsburg-state', crew: 'Crew A', city: 'Pittsburg', state: 'KS', startDate: '2026-09-08', endDate: '2026-10-02' },
+  { id: 'ie-007', projectId: 'davita-dialysis', crew: 'Crew C', city: 'Pittsburg', state: 'KS', startDate: '2026-09-08', endDate: '2026-09-26' },
+  { id: 'ie-008', projectId: 'oz-trails', crew: 'Crew B', city: 'Bella Vista', state: 'AR', startDate: '2026-09-14', endDate: '2026-10-04' },
+  // October 2026
+  { id: 'ie-009', projectId: 'fletcher-toyota', crew: 'Crew A', city: 'Joplin', state: 'MO', startDate: '2026-10-05', endDate: '2026-10-30' },
+  { id: 'ie-010', projectId: 'joplin-jdc', crew: 'Crew C', city: 'Joplin', state: 'MO', startDate: '2026-10-06', endDate: '2026-11-14' },
+  { id: 'ie-011', projectId: 'la-z-boy', crew: 'Crew B', city: 'Neosho', state: 'MO', startDate: '2026-08-11', endDate: '2026-09-20' },
+  // November 2026
+  { id: 'ie-012', projectId: 'springdale-library', crew: 'Crew A', city: 'Springdale', state: 'AR', startDate: '2026-11-03', endDate: '2026-12-12' },
+  { id: 'ie-013', projectId: 'greenwood-springs', crew: 'Crew C', city: 'Joplin', state: 'MO', startDate: '2026-11-16', endDate: '2026-12-18' },
+  { id: 'ie-014', projectId: 'walmart-aviation', crew: 'Crew B', city: 'Rogers', state: 'AR', startDate: '2026-11-17', endDate: '2027-01-09' },
+  // 2027
+  { id: 'ie-015', projectId: 'bentonville-hs', crew: 'Crew A', city: 'Bentonville', state: 'AR', startDate: '2027-06-01', endDate: '2027-08-07' },
+  { id: 'ie-016', projectId: 'joplin-hs', crew: 'Crew B', city: 'Joplin', state: 'MO', startDate: '2027-06-01', endDate: '2027-08-07' },
+  { id: 'ie-017', projectId: 'galena-hs', crew: 'Crew C', city: 'Galena', state: 'KS', startDate: '2027-06-07', endDate: '2027-07-25' },
+  { id: 'ie-018', projectId: 'webb-city-hs', crew: 'Crew A', city: 'Webb City', state: 'MO', startDate: '2027-06-14', endDate: '2027-08-01', conflictWith: 'ie-015' },
+]
+
+// ---------------------------------------------------------------------------
+// Bids
+// ---------------------------------------------------------------------------
+export const BIDS: Bid[] = [
+  { ref: 'B-2026-041', projectName: 'Carthage R9 Middle School', gc: 'Dillard Smith Construction', systems: ['Storefront', 'Entrances'], bidDueDate: '2026-08-14', status: 'Pricing', estimator: 'Chad Merritt', estimatedHours: 38, city: 'Carthage', state: 'MO', sector: 'Education', shutdownConstraint: 'Summer 2027' },
+  { ref: 'B-2026-042', projectName: 'Joplin Union Station Renovation', gc: 'BTL Construction', systems: ['Curtain Wall', 'Specialty Glass'], bidDueDate: '2026-08-21', status: 'In Takeoff', estimator: 'Lindsey Park', estimatedHours: 54, city: 'Joplin', state: 'MO', sector: 'Hospitality / Civic' },
+  { ref: 'B-2026-043', projectName: 'NW Arkansas Medical Clinic', gc: 'Nabholz Construction', systems: ['Storefront', 'Entrances', 'Operators'], bidDueDate: '2026-08-28', status: 'Received', estimator: 'Chad Merritt', estimatedHours: 22, city: 'Springdale', state: 'AR', sector: 'Healthcare' },
+  { ref: 'B-2026-040', projectName: 'Fort Scott Community College', gc: 'R&R Engineers', systems: ['Curtain Wall', 'Storefront', 'Entrances'], bidDueDate: '2026-08-07', status: 'Submitted', estimator: 'Lindsey Park', estimatedHours: 64, city: 'Fort Scott', state: 'KS', sector: 'Education', shutdownConstraint: 'Summer 2027' },
+  { ref: 'B-2026-038', projectName: 'Rogers Market Pavilion', gc: 'Crossland Construction', systems: ['Storefront', 'Specialty Glass'], bidDueDate: '2026-07-28', status: 'Awarded', estimator: 'Chad Merritt', estimatedHours: 28, city: 'Rogers', state: 'AR', sector: 'Commercial' },
+  { ref: 'B-2026-035', projectName: 'Joplin City Hall Lobby', gc: 'Wilder Construction', systems: ['Curtain Wall', 'Entrances'], bidDueDate: '2026-07-10', status: 'Lost', estimator: 'Lindsey Park', estimatedHours: 42, city: 'Joplin', state: 'MO', sector: 'Hospitality / Civic' },
+  { ref: 'B-2026-044', projectName: 'Monett High School Addition', gc: 'Witte Brothers Construction', systems: ['Storefront', 'Entrances'], bidDueDate: '2026-09-04', status: 'Received', estimator: 'Chad Merritt', estimatedHours: 30, city: 'Monett', state: 'MO', sector: 'Education', shutdownConstraint: 'Summer 2027' },
+  { ref: 'B-2026-045', projectName: 'Grove Community Center', gc: 'Manhattan Construction', systems: ['Curtain Wall', 'Storefront', 'Operators'], bidDueDate: '2026-09-11', status: 'Received', estimator: 'Lindsey Park', estimatedHours: 46, city: 'Grove', state: 'OK', sector: 'Hospitality / Civic' },
+]
+
+// ---------------------------------------------------------------------------
+// Pipeline / Opportunities
+// ---------------------------------------------------------------------------
+export const OPPORTUNITIES: Opportunity[] = [
+  { id: 'opp-001', name: 'Ozarks Technical Community College', gc: 'JE Dunn Construction', stage: 'Lead', value: 1_200_000, closeDate: '2027-03-15', owner: 'Lindsey Park', sector: 'Education', city: 'Springfield', state: 'MO', systems: ['Curtain Wall', 'Storefront', 'Entrances'] },
+  { id: 'opp-002', name: 'Bentonville Community Center', gc: 'Crossland Construction', stage: 'Qualified', value: 640_000, closeDate: '2026-12-01', owner: 'Chad Merritt', sector: 'Hospitality / Civic', city: 'Bentonville', state: 'AR', systems: ['Storefront', 'Specialty Glass', 'Entrances'] },
+  { id: 'opp-003', name: 'MSSU Science Building', gc: 'Nabholz Construction', stage: 'Bidding', value: 920_000, closeDate: '2026-10-18', owner: 'Lindsey Park', sector: 'Education', city: 'Joplin', state: 'MO', systems: ['Curtain Wall', 'Storefront'] },
+  { id: 'opp-004', name: 'Carthage Mercy Clinic', gc: 'Flintco', stage: 'Bidding', value: 285_000, closeDate: '2026-10-04', owner: 'Chad Merritt', sector: 'Healthcare', city: 'Carthage', state: 'MO', systems: ['Storefront', 'Entrances'] },
+  { id: 'opp-005', name: 'Fayetteville VA Clinic Expansion', gc: 'Manhattan Construction', stage: 'Proposal Out', value: 540_000, closeDate: '2026-09-22', owner: 'Lindsey Park', sector: 'Healthcare', city: 'Fayetteville', state: 'AR', systems: ['Storefront', 'Entrances', 'Operators'] },
+  { id: 'opp-006', name: 'Siloam Springs City Hall', gc: 'Baldwin & Shell Construction', stage: 'Proposal Out', value: 380_000, closeDate: '2026-09-15', owner: 'Chad Merritt', sector: 'Hospitality / Civic', city: 'Siloam Springs', state: 'AR', systems: ['Storefront', 'Curtain Wall'] },
+  { id: 'opp-007', name: "Pittsburg State HVAC/Lab Building", gc: 'BMS CAT', stage: 'Won', value: 750_000, closeDate: '2026-08-01', owner: 'Lindsey Park', sector: 'Education', city: 'Pittsburg', state: 'KS', systems: ['Curtain Wall', 'Storefront', 'Entrances'] },
+  { id: 'opp-008', name: 'Joplin Regional Medical MOB', gc: 'JE Dunn Construction', stage: 'Won', value: 610_000, closeDate: '2026-07-15', owner: 'Chad Merritt', sector: 'Healthcare', city: 'Joplin', state: 'MO', systems: ['Storefront', 'Entrances'] },
+  { id: 'opp-009', name: 'Webb City Distribution Center', gc: 'Wilder Construction', stage: 'Lost', value: 440_000, closeDate: '2026-07-08', owner: 'Lindsey Park', sector: 'Industrial', city: 'Webb City', state: 'MO', systems: ['Storefront'] },
+  { id: 'opp-010', name: 'Neosho High School Renovation', gc: 'Dillard Smith Construction', stage: 'Qualified', value: 490_000, closeDate: '2026-11-14', owner: 'Chad Merritt', sector: 'Education', city: 'Neosho', state: 'MO', systems: ['Storefront', 'Entrances'], },
+]
+
+// ---------------------------------------------------------------------------
+// Contacts
+// ---------------------------------------------------------------------------
+export const CONTACTS: Contact[] = [
+  { id: 'c-001', name: 'Ryan Hoover', company: 'Crossland Construction', role: 'GC PM', phone: '417-555-0101', email: 'rhoover@crossland.com', projects: ['bentonville-hs', 'blue-ember', 'oz-trails', 'vista-21'] },
+  { id: 'c-002', name: 'Melissa Crane', company: 'JE Dunn Construction', role: 'GC PM', phone: '816-555-0202', email: 'mcrane@jedunn.com', projects: ['joplin-hs', 'cornell-arts', 'joplin-jdc'] },
+  { id: 'c-003', name: 'Derek Stout', company: 'Nabholz Construction', role: 'GC PM', phone: '479-555-0303', email: 'dstout@nabholz.com', projects: ['ua-hper', 'davita-dialysis', 'walmart-aviation'] },
+  { id: 'c-004', name: 'Pamela Weir', company: 'Polk Stanley Wilcox Architects', role: 'Architect', phone: '479-555-0404', email: 'pweir@pswarchitects.com', projects: ['bentonville-hs', 'ua-hper', 'springdale-library'] },
+  { id: 'c-005', name: 'Jason Hurley', company: 'BMS CAT', role: 'GC PM', phone: '620-555-0505', email: 'jhurley@bmscat.com', projects: ['pittsburg-state'] },
+  { id: 'c-006', name: 'Andrea Simmons', company: 'Flintco', role: 'GC PM', phone: '918-555-0606', email: 'asimmons@flintco.com', projects: ['halfmoon-oral', 'image-studios'] },
+  { id: 'c-007', name: 'Tom Ricker', company: 'Wilder Construction', role: 'GC PM', phone: '417-555-0707', email: 'tricker@wilder.com', projects: ['fletcher-toyota', 'millennium-fitness', 'la-z-boy', 'severs-trucking'] },
+  { id: 'c-008', name: 'Susan Briggs', company: 'DKL Architecture', role: 'Architect', phone: '417-555-0808', email: 'sbriggs@dklarch.com', projects: ['joplin-hs', 'joplin-jdc', 'millennium-fitness'] },
+  { id: 'c-009', name: 'Mark Caldwell', company: 'Manhattan Construction', role: 'GC PM', phone: '918-555-0909', email: 'mcaldwell@manhattan-construction.com', projects: ['sugar-creek-hotel', 'ferra-aerospace', 'south-grand-lake'] },
+  { id: 'c-010', name: 'Brenda Olson', company: 'Caddell BuildOS demo org', role: 'Facilities Director', phone: '417-555-1010', email: 'bolson@bentonville.k12.ar.us', projects: ['bentonville-hs'] },
+]
+
+// ---------------------------------------------------------------------------
+// Emergency Dispatch Tickets
+// ---------------------------------------------------------------------------
+export const TICKETS: Ticket[] = [
+  {
+    id: 'TKT-0048',
+    location: 'Mid-Missouri Bank, Webb City MO',
+    opening: 'Storefront door — shattered panel, main entrance',
+    hazardState: 'Building accessible, temp barrier in place',
+    reportedAt: '2026-08-07T06:22:00',
+    dispatchedAt: '2026-08-07T06:35:00',
+    enRouteAt: '2026-08-07T06:50:00',
+    onSiteAt: '2026-08-07T07:45:00',
+    securedAt: '2026-08-07T09:15:00',
+    resolvedAt: '2026-08-07T09:15:00',
+    status: 'Resolved',
+    techAssigned: 'Mike Holt',
+    customerPhone: '417-555-2200',
+  },
+  {
+    id: 'TKT-0049',
+    location: 'Menards, Joplin MO',
+    opening: 'Auto-op entrance — door off track after vehicle strike',
+    hazardState: 'Entrance blocked, pedestrians using side door',
+    reportedAt: '2026-08-07T08:04:00',
+    dispatchedAt: '2026-08-07T08:18:00',
+    enRouteAt: '2026-08-07T08:30:00',
+    status: 'En Route',
+    techAssigned: 'Jake Finley',
+    customerPhone: '417-555-6600',
+  },
+  {
+    id: 'TKT-0050',
+    location: 'Fletcher Toyota, Joplin MO',
+    opening: 'Showroom storefront — broken IGU, hairline crack spreading',
+    hazardState: 'No immediate hazard — cracked unit stable, temp tape applied',
+    reportedAt: '2026-08-07T09:41:00',
+    status: 'New',
+    customerPhone: '417-555-8800',
+  },
+]
+
+// ---------------------------------------------------------------------------
+// Documents (for Bentonville HS canonical project)
+// ---------------------------------------------------------------------------
+export const DOCUMENTS: Document[] = [
+  { id: 'doc-001', projectId: 'bentonville-hs', name: 'CW-01 Curtain Wall Elevations', type: 'Shop Drawing', revision: 'Rev 2', approvalState: 'Approved', updatedAt: '2026-07-14' },
+  { id: 'doc-002', projectId: 'bentonville-hs', name: 'CW-02 Curtain Wall Details', type: 'Shop Drawing', revision: 'Rev 2', approvalState: 'Approved', updatedAt: '2026-07-14' },
+  { id: 'doc-003', projectId: 'bentonville-hs', name: 'SF-01 Storefront Layouts', type: 'Shop Drawing', revision: 'Rev 1', approvalState: 'Awaiting Architect Approval', updatedAt: '2026-07-28' },
+  { id: 'doc-004', projectId: 'bentonville-hs', name: 'SUB-CW — Curtain Wall System', type: 'Submittal', revision: 'Rev 2', approvalState: 'Approved', updatedAt: '2026-06-22' },
+  { id: 'doc-005', projectId: 'bentonville-hs', name: 'SUB-SF — Storefront System', type: 'Submittal', revision: 'Rev 1', approvalState: 'Revise & Resubmit', updatedAt: '2026-07-05' },
+  { id: 'doc-006', projectId: 'bentonville-hs', name: 'RFI-001 — CW Anchor Spacing at Grid B', type: 'RFI', revision: 'Rev 0', approvalState: 'Approved', updatedAt: '2026-06-10' },
+  { id: 'doc-007', projectId: 'bentonville-hs', name: 'RFI-002 — Storefront Sill Condition at Entry 3', type: 'RFI', revision: 'Rev 0', approvalState: 'Awaiting Architect Approval', updatedAt: '2026-07-30' },
+  { id: 'doc-008', projectId: 'bentonville-hs', name: 'CO-001 — Added glazing at Gym Lobby', type: 'Change Order', revision: 'Rev 0', approvalState: 'Submitted', updatedAt: '2026-08-01' },
+  // Other projects
+  { id: 'doc-010', projectId: 'joplin-hs', name: 'CW-01 Curtain Wall Elevations', type: 'Shop Drawing', revision: 'Rev 1', approvalState: 'Awaiting Architect Approval', updatedAt: '2026-07-20' },
+  { id: 'doc-011', projectId: 'pittsburg-state', name: 'CW-01 Curtain Wall Shop Drawings', type: 'Shop Drawing', revision: 'Rev 3', approvalState: 'Approved', updatedAt: '2026-05-15' },
+  { id: 'doc-012', projectId: 'pittsburg-state', name: 'SUB-CW — Curtain Wall System', type: 'Submittal', revision: 'Rev 3', approvalState: 'Approved', updatedAt: '2026-04-28' },
+  { id: 'doc-013', projectId: 'galena-hs', name: 'SF-01 Storefront Layouts', type: 'Shop Drawing', revision: 'Rev 0', approvalState: 'Draft', updatedAt: '2026-08-02' },
+]
+
+// ---------------------------------------------------------------------------
+// Activity Feed (Bentonville HS)
+// ---------------------------------------------------------------------------
+export const ACTIVITY: ActivityEvent[] = [
+  { id: 'ae-001', projectId: 'bentonville-hs', timestamp: '2026-08-07T09:00:00', actor: 'Shop Inspection', message: 'IGU #B-214 failed seal inspection at glazing station — void detected along bottom unit edge' },
+  { id: 'ae-002', projectId: 'bentonville-hs', timestamp: '2026-08-07T09:22:00', actor: 'Chad Merritt', message: 'Re-order placed with Trulite Glass — PO #B-214-R, 14-day lead confirmed by vendor rep' },
+  { id: 'ae-003', projectId: 'bentonville-hs', timestamp: '2026-08-06T14:15:00', actor: 'Shop', message: 'Curtain wall lites 1–24 (Row A) completed glazing station — staged for Bentonville' },
+  { id: 'ae-004', projectId: 'bentonville-hs', timestamp: '2026-08-05T11:30:00', actor: 'Lindsey Park', message: 'Shop Drawing SF-01 Rev 1 submitted to Polk Stanley Wilcox — awaiting architect approval' },
+  { id: 'ae-005', projectId: 'bentonville-hs', timestamp: '2026-08-04T16:00:00', actor: 'Ryan Hoover (Crossland)', message: 'Confirmed site access for Crew A mobilization June 1, 2027 — gates open 6am' },
+  { id: 'ae-006', projectId: 'bentonville-hs', timestamp: '2026-08-03T10:00:00', actor: 'Chad Merritt', message: 'Submittal SUB-SF Rev 1 returned Revise & Resubmit — architect notes: sill detail at Entry 3 does not match issued-for-construction drawings' },
+  { id: 'ae-007', projectId: 'bentonville-hs', timestamp: '2026-07-28T13:45:00', actor: 'Lindsey Park', message: 'RFI-002 issued: storefront sill condition at Entry 3 requires clarification before Rev 2 resubmission' },
+  { id: 'ae-008', projectId: 'bentonville-hs', timestamp: '2026-07-14T09:00:00', actor: 'Architect', message: 'Shop Drawing CW-01 Rev 2 approved — curtain wall package released for fabrication' },
+]
+
+// ---------------------------------------------------------------------------
+// Aggregate helpers used by the dashboard
+// ---------------------------------------------------------------------------
+export const ACTIVE_PROJECTS = PROJECTS.filter(
+  (p) => p.phase !== 'Punch' && p.percentComplete < 100
+)
+
+export const EDUCATION_PROJECTS = PROJECTS.filter(
+  (p) => p.sector === 'Education'
+)
+
+export const SHUTDOWN_PROJECTS = PROJECTS.filter(
+  (p) => p.hardDeadlineWindow?.includes('Summer 2027')
+)
