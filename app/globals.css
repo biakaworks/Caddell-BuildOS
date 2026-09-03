@@ -1,15 +1,24 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-/* BuildOS theme v2 */
+/* BuildOS theme v3 — Caddell brand standards applied
+   Source of truth: Caddell Brand Standards Guide 2025 + caddell-brand skill.
+   Primary  Maroon #691C32 (PMS 7421)   Gold #F4B223 (PMS 7409)
+   Gray     #B2B4B3 (PMS 421)           Navy #004D71 (PMS 3025)
+   Teal     #9FCFCA (PMS 7464)          Sage #009877 (PMS 3278)
+   Type     Roboto Condensed (headings + UI), Crimson Pro (long-form serif) */
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-heading: var(--font-oswald), 'Oswald Fallback', 'Arial Narrow', sans-serif;
-  --font-sans: var(--font-open-sans), 'Open Sans Fallback', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
-  --font-display: var(--font-display), Georgia, 'Times New Roman', serif;
+  /* Roboto Condensed is the brand face for headings AND body per the skill.
+     If dense tables ever feel cramped, plain Roboto is the skill's sanctioned
+     sans fallback — swap --font-sans only, leave --font-heading alone. */
+  --font-heading: var(--font-roboto-condensed), 'Roboto Condensed', 'Arial Narrow', sans-serif;
+  --font-sans: var(--font-roboto-condensed), 'Roboto Condensed', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-roboto-mono), ui-monospace, 'SFMono-Regular', monospace;
+  /* Crimson Pro — the approved serif. Used ONLY for the client-facing Showcase. */
+  --font-display: var(--font-crimson-pro), 'Crimson Pro', Georgia, 'Times New Roman', serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -42,9 +51,19 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
 
-  /* Gold — reserved for the single primary call-to-action per screen */
+  /* Gold — reserved for the single primary call-to-action per screen
+     and the active-nav indicator. Never a card or section fill. */
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
+
+  /* Raw brand palette — for the rare component that needs the literal color
+     (chart series, a brand-colored legend). Prefer the semantic tokens. */
+  --color-caddell-maroon: var(--caddell-maroon);
+  --color-caddell-gold: var(--caddell-gold);
+  --color-caddell-gray: var(--caddell-gray);
+  --color-caddell-navy: var(--caddell-navy);
+  --color-caddell-teal: var(--caddell-teal);
+  --color-caddell-sage: var(--caddell-sage);
 
   /* Status system */
   --color-success: var(--success);
@@ -62,6 +81,7 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-info-muted: var(--info-muted);
+  --color-info-strong: var(--info-strong);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -75,72 +95,85 @@
 :root {
   color-scheme: light;
 
-  /* Caddell Construction brand
-     primary  = maroon #691C32
-     ink      = #20242E
-     gray     = warm gray #6E7072
-     gold CTA = #FAC056 (reserved, see --gold) */
-  --background: oklch(0.992 0.002 60);
-  --foreground: oklch(0.26 0.02 264);
+  /* ---- Raw Caddell palette (exact brand values, OKLCH) ---- */
+  --caddell-maroon: oklch(0.358 0.11 7.5);       /* #691C32  PMS 7421 */
+  --caddell-maroon-700: oklch(0.309 0.093 4.7);  /* #54162A  hover / pressed only */
+  --caddell-maroon-050: oklch(0.949 0.0115 357); /* #F5EBEE  selected-row tint */
+  --caddell-gold: oklch(0.805 0.159 80.2);       /* #F4B223  PMS 7409 */
+  --caddell-gray: oklch(0.768 0.0026 165);       /* #B2B4B3  PMS 421 */
+  --caddell-navy: oklch(0.399 0.088 238);        /* #004D71  PMS 3025 */
+  --caddell-teal: oklch(0.819 0.0506 188);       /* #9FCFCA  PMS 7464 */
+  --caddell-sage: oklch(0.605 0.119 170);        /* #009877  PMS 3278 */
+  --caddell-ink: oklch(0.249 0.0048 220);        /* #1F2223 */
+  --caddell-slate: oklch(0.549 0.004 174);       /* #6F7271  the logo tagline gray */
+
+  /* ---- Surfaces & text ---- */
+  --background: oklch(0.985 0.0013 106);         /* #F9F9F8 — cool, off the brand gray, not cream */
+  --foreground: var(--caddell-ink);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.26 0.02 264);
+  --card-foreground: var(--caddell-ink);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.26 0.02 264);
-  --primary: oklch(0.358 0.11 8);
-  --primary-foreground: oklch(0.985 0.005 80);
-  --secondary: oklch(0.955 0.004 60);
-  --secondary-foreground: oklch(0.3 0.02 264);
-  --muted: oklch(0.965 0.004 60);
-  --muted-foreground: oklch(0.53 0.006 260);
-  /* Accent drives hover/selected states across the app — kept a light maroon
-     tint so those states are maroon-forward (gold is reserved for CTAs). */
-  --accent: oklch(0.95 0.022 8);
-  --accent-foreground: oklch(0.358 0.11 8);
+  --popover-foreground: var(--caddell-ink);
+  --primary: var(--caddell-maroon);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.973 0.0013 106);          /* #F6F6F5 */
+  --secondary-foreground: var(--caddell-ink);
+  --muted: oklch(0.973 0.0013 106);
+  --muted-foreground: var(--caddell-slate);
+  /* Accent drives hover/selected states — a light maroon tint so those
+     states are maroon-forward. Gold stays reserved for the CTA. */
+  --accent: var(--caddell-maroon-050);
+  --accent-foreground: var(--caddell-maroon);
   --destructive: oklch(0.55 0.2 27);
-  --border: oklch(0.9 0.004 60);
-  --input: oklch(0.9 0.004 60);
-  --ring: oklch(0.358 0.11 8);
+  --border: oklch(0.9155 0.0013 106);            /* #E3E3E2 */
+  --input: oklch(0.9155 0.0013 106);
+  --ring: var(--caddell-maroon);
 
-  /* Gold — the single primary CTA accent (#FAC056) */
-  --gold: oklch(0.841 0.138 80);
-  --gold-foreground: oklch(0.26 0.02 264);
+  /* Gold — the single primary CTA accent (#F4B223) */
+  --gold: var(--caddell-gold);
+  --gold-foreground: var(--caddell-ink);
 
-  /* Charts — an earthy, construction-appropriate palette led by the brand */
-  --chart-1: oklch(0.42 0.12 10);
-  --chart-2: oklch(0.8 0.13 80);
-  --chart-3: oklch(0.62 0.09 45);
-  --chart-4: oklch(0.52 0.04 250);
-  --chart-5: oklch(0.68 0.07 160);
+  /* Charts — brand secondaries, ordered for maximum separation */
+  --chart-1: var(--caddell-maroon);
+  --chart-2: var(--caddell-navy);
+  --chart-3: var(--caddell-gold);
+  --chart-4: var(--caddell-sage);
+  --chart-5: var(--caddell-teal);
 
-  --success: oklch(0.55 0.13 155);
-  --success-foreground: oklch(0.99 0.002 247);
-  --success-muted: oklch(0.95 0.04 155);
-  --success-strong: oklch(0.43 0.11 155);
-  --warning: oklch(0.66 0.13 65);
-  --warning-foreground: oklch(0.99 0.002 247);
-  --warning-muted: oklch(0.95 0.05 75);
-  --warning-strong: oklch(0.46 0.1 60);
+  /* ---- Status — semantic, on-palette where the palette allows ----
+     Maroon is identity, never status: an overdue row must not read as
+     "Caddell". Success = Sage, Info = Navy, Warning = a darkened Gold so
+     it reads as text and stays distinct from the gold CTA, Danger = true red. */
+  --success: var(--caddell-sage);
+  --success-foreground: oklch(1 0 0);
+  --success-muted: oklch(0.955 0.03 170);
+  --success-strong: oklch(0.46 0.1 170);
+  --warning: oklch(0.72 0.15 78);
+  --warning-foreground: var(--caddell-ink);
+  --warning-muted: oklch(0.96 0.05 85);
+  --warning-strong: oklch(0.5 0.11 70);
   --danger: oklch(0.55 0.2 27);
-  --danger-foreground: oklch(0.99 0.002 247);
+  --danger-foreground: oklch(1 0 0);
   --danger-muted: oklch(0.95 0.04 27);
   --danger-strong: oklch(0.48 0.19 27);
-  /* Info now carries the brand maroon rather than the old blue. */
-  --info: oklch(0.358 0.11 8);
-  --info-foreground: oklch(0.985 0.005 80);
-  --info-muted: oklch(0.95 0.025 8);
+  --info: var(--caddell-navy);
+  --info-foreground: oklch(1 0 0);
+  --info-muted: oklch(0.95 0.02 238);
+  --info-strong: oklch(0.34 0.08 238);
 
-  /* Squared corners (~2px) */
+  /* Squared corners (~2px) — the brand is architectural */
   --radius: 0.125rem;
 
-  /* Sidebar — deep Caddell maroon (#4E1526) so the left rail reads maroon */
-  --sidebar: oklch(0.285 0.088 6);
-  --sidebar-foreground: oklch(0.84 0.015 40);
-  --sidebar-primary: oklch(0.72 0.13 15);
-  --sidebar-primary-foreground: oklch(0.2 0.05 10);
-  --sidebar-accent: oklch(0.32 0.06 10);
-  --sidebar-accent-foreground: oklch(0.97 0.005 60);
-  --sidebar-border: oklch(0.34 0.05 10);
-  --sidebar-ring: oklch(0.72 0.13 15);
+  /* Sidebar — the ONE acceptable maroon (#691C32), per the brand guide.
+     Hover/active use the 700 shade as a state, never as a surface. */
+  --sidebar: var(--caddell-maroon);
+  --sidebar-foreground: oklch(0.93 0.008 350);
+  --sidebar-primary: var(--caddell-gold);
+  --sidebar-primary-foreground: var(--caddell-ink);
+  --sidebar-accent: var(--caddell-maroon-700);
+  --sidebar-accent-foreground: oklch(1 0 0);
+  --sidebar-border: oklch(0.44 0.095 7.5);
+  --sidebar-ring: var(--caddell-gold);
 }
 
 @layer base {

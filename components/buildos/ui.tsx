@@ -240,7 +240,7 @@ export function PageHeader({
   children?: React.ReactNode
 }) {
   return (
-    <header className="flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
+    <header className="sticky top-16 z-20 -mx-4 flex flex-col gap-4 border-b border-border bg-background/85 px-4 pb-5 pt-5 backdrop-blur-md sm:-mx-6 sm:flex-row sm:items-end sm:justify-between sm:px-6 lg:-mx-8 lg:px-8">
       <div className="min-w-0">
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-balance text-foreground">
           {title}

@@ -23,15 +23,15 @@ export function AuthFlow() {
     <div className="flex min-h-screen flex-col bg-background lg:flex-row">
       {/* Brand panel */}
       <aside className="relative flex shrink-0 flex-col justify-between bg-sidebar px-8 py-10 text-sidebar-foreground lg:w-[42%] lg:px-12 lg:py-14">
-        <div className="flex items-center gap-3">
-          {/* White Caddell wordmark on the dark hero — a bit larger here */}
+        <div className="flex flex-col gap-4">
+          {/* The full primary lockup — the one place in the app it has room
+              to be read. Nothing sits beside it (clearspace rule). */}
           <img
             src="/caddell-logo-white.svg"
-            alt="Caddell Construction"
-            className="h-9 w-auto shrink-0"
+            alt="Caddell — Constructing What Matters"
+            className="h-14 w-auto self-start"
           />
-          <span className="h-8 w-px shrink-0 bg-sidebar-border" aria-hidden="true" />
-          <span className="font-heading text-xl font-semibold tracking-tight text-sidebar-accent-foreground">
+          <span className="font-heading text-sm font-bold uppercase tracking-[0.2em] text-sidebar-accent-foreground">
             BuildOS
           </span>
         </div>

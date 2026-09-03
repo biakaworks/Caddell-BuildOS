@@ -30,7 +30,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
           <SidebarNav />
         </aside>
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="print-hide">
+          <div className="sticky top-0 z-30 print-hide">
             <Topbar />
           </div>
           <main className="flex-1">{children}</main>
