@@ -19,7 +19,7 @@ import {
 } from "./config"
 import { MetricMainChart } from "@/components/buildos/reporting/perf-charts"
 
-/** The display register: editorial (Fraunces) for client decks, enterprise sans for internal. */
+/** The display register: editorial (Crimson Pro, the Caddell serif) for client decks, Roboto Condensed for internal. */
 const headingFont = (editorial: boolean) => (editorial ? "font-display" : "font-heading")
 
 /* ---------------------------------------------------------------------------

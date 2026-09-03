@@ -89,9 +89,10 @@ export function Topbar() {
 
       {/* Maroon Caddell wordmark for the light top bar (mobile — the dark
           sidebar mark is hidden behind the hamburger at this breakpoint) */}
-      <Link href="/" className="flex items-center gap-2 lg:hidden" aria-label="Caddell BuildOS home">
-        <img src="/caddell-logo.svg" alt="Caddell Construction" className="h-6 w-auto shrink-0" />
-        <span className="font-heading text-base font-semibold tracking-tight text-foreground">
+      <Link href="/" className="flex items-center gap-3.5 lg:hidden" aria-label="Caddell BuildOS home">
+        <img src="/caddell-wordmark.svg" alt="Caddell" className="h-5 w-auto shrink-0" />
+        <span className="h-5 w-px shrink-0 bg-border" aria-hidden="true" />
+        <span className="font-heading text-sm font-bold uppercase tracking-wider text-foreground">
           BuildOS
         </span>
       </Link>
