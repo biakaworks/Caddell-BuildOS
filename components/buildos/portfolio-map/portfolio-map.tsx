@@ -134,7 +134,7 @@ export function PortfolioMap() {
         {visibleSites.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="relative bg-muted">
+          <div className="relative isolate z-0 bg-muted">
             <LeafletMap
               sites={visibleSites}
               activeId={activeId}
