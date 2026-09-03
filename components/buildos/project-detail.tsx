@@ -60,7 +60,7 @@ export function ProjectDetail({ project, initialTab }: { project: Project; initi
         All projects
       </Link>
 
-      <header className="mt-3 flex flex-col gap-4 border-b border-border pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <header className="sticky top-16 z-20 -mx-4 mt-3 flex flex-col gap-4 border-b border-border bg-background/85 px-4 pb-5 pt-3 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:flex-row lg:items-end lg:justify-between lg:px-8">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
